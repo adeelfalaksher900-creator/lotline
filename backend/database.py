@@ -12,6 +12,7 @@ import tempfile
 import threading
 import time
 import redis
+import secrets
 
 from falkordb import FalkorDB
 
@@ -27,8 +28,15 @@ def connection():
     global _db, _process
     with LOCK:
         if _db is not None:
-            _db.connection.ping()
-            return _db
+            try:
+                _db.connection.ping()
+                return _db
+            except redis.exceptions.RedisError:
+                _db = None
+                _initialized.clear()
+                if os.environ.get("FALKORDB_URL"):
+                    raise
+                close()
         url = os.environ.get("FALKORDB_URL")
         if url:
             _db = FalkorDB.from_url(url, socket_timeout=8, socket_connect_timeout=8)
@@ -43,10 +51,19 @@ def connection():
                 port = sock.getsockname()[1]
             folder = Path(tempfile.mkdtemp(prefix="lotline-"))
             log = (folder / "server.log").open("w")
+            runtime = ROOT / "vendor/glibc"
+            if os.environ.get("VERCEL") and not (runtime / "ld-linux-x86-64.so.2").exists():
+                runtime = Path("/tmp/lotline-native")
+                if not (runtime / "provenance.json").exists():
+                    from scripts.prepare_runtime import prepare
+                    prepare(runtime)
+            loader = runtime / "ld-linux-x86-64.so.2"
+            prefix = [str(loader), "--library-path", str(runtime)] if loader.exists() else []
             _process = subprocess.Popen(
-                [str(binaries / "redis-server"), "--loadmodule", str(binaries / "falkordb.so"),
+                prefix + [str(binaries / "redis-server"), "--loadmodule", str(binaries / "falkordb.so"),
                  "THREAD_COUNT", "2", "--bind", "127.0.0.1", "--port", str(port),
                  "--dir", str(folder), "--save", "", "--appendonly", "no",
+                 "--maxclients", "128",
                  "--protected-mode", "yes"],
                 stdout=log, stderr=log,
             )
@@ -99,7 +116,7 @@ def seed(graph):
             f"MATCH (a {{id:$source}}), (b {{id:$target}}) CREATE (a)-[r:{item['kind']}]->(b) SET r = $props",
             {"source": item["source"], "target": item["target"], "props": item},
         )
-    graph.query("CREATE (:Meta {id:'dataset', version:$version, revision:0})", {"version": DATA["version"]})
+    graph.query("CREATE (:Meta {id:'dataset', version:$version, revision:0, epoch:$epoch})", {"version": DATA["version"], "epoch": secrets.token_hex(16)})
 
 
 def rows(graph, query: str, params: dict | None = None, write=False):
@@ -110,6 +127,10 @@ def rows(graph, query: str, params: dict | None = None, write=False):
 
 def revision(graph) -> int:
     return rows(graph, "MATCH (m:Meta {id:'dataset'}) RETURN m.revision AS revision")[0]["revision"]
+
+
+def epoch(graph) -> str:
+    return rows(graph, "MATCH (m:Meta {id:'dataset'}) RETURN m.epoch AS epoch")[0]["epoch"]
 
 
 def snapshot(graph):

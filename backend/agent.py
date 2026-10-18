@@ -15,7 +15,7 @@ def select_tool(question: str, selected_lot: str) -> dict:
     endpoint = os.environ.get("LOTLINE_PLANNER_URL")
     if endpoint:
         try:
-            headers = {"Content-Type": "application/json"}
+            headers = {"Content-Type": "application/json", "User-Agent": "Lotline/1.0"}
             key = os.environ.get("LOTLINE_PLANNER_KEY")
             if key:
                 headers["Authorization"] = f"Bearer {key}"

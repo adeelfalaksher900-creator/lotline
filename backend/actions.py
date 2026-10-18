@@ -10,7 +10,7 @@ import secrets
 import time
 from datetime import datetime, timezone
 
-from .database import LOCK, revision, rows
+from .database import LOCK, revision, rows, epoch
 from .tools import investigate
 
 SECRET = os.environ.get("LOTLINE_SESSION_SECRET", secrets.token_hex(32)).encode()
@@ -43,7 +43,7 @@ def prepare(graph, workspace: str, lot_id: str, now: int | None = None):
     eligible = [s for s in scope["confirmed"] if s.get("status") != "held"]
     if scope["outcome"] != "answered_with_paths" or not eligible:
         raise ActionError("No complete, confirmed, unheld shipments are available for this plan.")
-    payload = {"workspace": workspace, "lot_id": lot_id, "shipments": sorted(s["id"] for s in eligible), "revision": scope["revision"], "expires": (now if now is not None else int(time.time())) + 600, "id": secrets.token_hex(12)}
+    payload = {"workspace": workspace, "lot_id": lot_id, "shipments": sorted(s["id"] for s in eligible), "revision": scope["revision"], "epoch": epoch(graph), "expires": (now if now is not None else int(time.time())) + 600, "id": secrets.token_hex(12)}
     return {"token": sign(payload), "id": payload["id"], "expires_at": payload["expires"], "revision": payload["revision"], "lot_id": lot_id, "shipments": eligible, "units": sum(s["units"] for s in eligible), "excluded": scope["uncertain"], "sandbox": True}
 
 
@@ -59,7 +59,7 @@ def commit(graph, workspace: str, token: str, approved: bool, now: int | None = 
             return {"decision": existing[0]["decision"], "replayed": True}
         if payload.get("expires", 0) < (now if now is not None else int(time.time())):
             raise ActionError("This plan expired. Generate a new plan.")
-        if revision(graph) != payload["revision"]:
+        if revision(graph) != payload["revision"] or epoch(graph) != payload.get("epoch"):
             raise ActionError("The graph changed after this review. Refresh the scope and review again.")
         fresh = investigate(graph, payload["lot_id"], 6)
         actual = sorted(s["id"] for s in fresh["confirmed"] if s.get("status") != "held")
@@ -71,7 +71,7 @@ def commit(graph, workspace: str, token: str, approved: bool, now: int | None = 
         # updates stock state and advances the revision as a single write.
         written = rows(graph, """
 MATCH (m:Meta {id:'dataset'})
-WHERE m.revision=$expected_revision
+WHERE m.revision=$expected_revision AND m.epoch=$expected_epoch
 OPTIONAL MATCH (previous:Decision {id:$decision_id})
 WITH m,previous WHERE previous IS NULL
 CREATE (d:Decision) SET d = $decision
@@ -82,7 +82,7 @@ SET s.status='held'
 WITH DISTINCT m,d
 SET m.revision=m.revision+1
 RETURN properties(d) AS decision
-""", {"decision": decision, "ids": actual, "expected_revision": payload["revision"], "decision_id": payload["id"]}, write=True)
+""", {"decision": decision, "ids": actual, "expected_revision": payload["revision"], "expected_epoch": payload["epoch"], "decision_id": payload["id"]}, write=True)
         if not written:
             existing = rows(graph, "MATCH (d:Decision {id:$id}) RETURN properties(d) AS decision", {"id": payload["id"]})
             if existing:

@@ -7,7 +7,7 @@ colors:
   background: '#F3F6F8'
   surface: '#FFFFFF'
   ink: '#20364B'
-  muted: '#627589'
+  muted: '#566a7d'
   line: '#D9E2E9'
   danger: '#B44748'
   warning: '#886121'
@@ -27,9 +27,9 @@ spacing:
   field: '0.75rem'
 components:
   button:
-    borderRadius: '0.5rem'
+    rounded: '0.5rem'
   dialog:
-    borderRadius: '0.875rem'
+    rounded: '0.875rem'
 ---
 
 # Lotline design system

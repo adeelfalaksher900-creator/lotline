@@ -12,3 +12,15 @@ __pycache__/
 media/output/
 media/node_modules/
 media/.hyperframes/
+vendor/
+dist/
+
+# Reproducible media outputs are delivered separately.
+media/**/*.webm
+media/**/*.mp4
+media/**/*.mp3
+media/**/*.wav
+media/**/node_modules/
+media/**/.hyperframes/
+media/**/.agents/
+media/**/.claude/

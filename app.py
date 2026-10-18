@@ -4,6 +4,7 @@ from collections import defaultdict, deque
 import hashlib
 import hmac
 import os
+import re
 import secrets
 import time
 from urllib.parse import urlparse
@@ -116,10 +117,21 @@ def investigate_endpoint(body: InvestigateRequest, request: Request):
     if plan["tool"] == "history":
         result = investigate(graph, lot, body.depth)
         result["history"] = decision_history(graph)
+        result["summary"] = f"{len(result['history'])} reviewed decisions are recorded in this sandbox workspace."
     elif plan["tool"] == "compare_depth":
         result = compare_depth(graph, lot)
     else:
         result = investigate(graph, lot, body.depth)
+        if plan["tool"] == "explain_path":
+            match = re.search(r"\bSH-[0-9]{3}\b", body.question.upper())
+            matches = [s for s in result["confirmed"] + result["uncertain"] if match and s["id"] == match.group()]
+            if matches:
+                item = matches[0]
+                result["summary"] = f"{item['id']} is connected through " + " → ".join(item["path"]) + f". Evidence status: {item['confidence'].replace('_', ' ')}. Source records: " + ", ".join(item["source_ids"]) + "."
+            elif match:
+                result["summary"] = f"No path from {lot} to {match.group()} is present in this graph. No connection was inferred."
+            elif result["outcome"] != "unknown_lot":
+                result["summary"] = "Name a shipment ID, for example SH-106, to inspect its exact path and records."
     result["planner"] = plan
     result["graph"] = snapshot(graph)
     return result

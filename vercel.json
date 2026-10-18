@@ -1,1 +1,1 @@
-{"framework":"fastapi","functions":{"app.py":{"maxDuration":60}},"rewrites":[]}
+{"framework":"fastapi","buildCommand":"python3 scripts/prepare_runtime.py","functions":{"app.py":{"maxDuration":60}}}

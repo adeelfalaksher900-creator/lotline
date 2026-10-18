@@ -1,0 +1,23 @@
+{
+  "reports": [
+    {
+      "name": "desktop-start",
+      "violations": []
+    },
+    {
+      "name": "desktop-result",
+      "violations": []
+    },
+    {
+      "name": "hold-review",
+      "violations": []
+    },
+    {
+      "name": "mobile-result",
+      "violations": []
+    }
+  ],
+  "focusRestored": true,
+  "mobileOverflow": false,
+  "pageErrors": []
+}
