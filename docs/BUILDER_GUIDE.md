@@ -12,7 +12,7 @@ A supplier lot is rarely the final product ID. Mixing, new batches, repacking an
 - DELIVERED_TO connects each shipment to a destination.
 - Document nodes contain the fictional source records. ABOUT links source alerts to a lot.
 - Decision nodes link via HOLDS to the exact shipments reviewed by the operator.
-- Meta stores the fixture version and a revision counter.
+- Meta stores the fixture version, a revision counter and an epoch that changes when the graph is recreated.
 
 ## The important query
 
@@ -36,7 +36,7 @@ The read-only MCP server exposes the same graph tools for an external MCP host. 
 At one transformation hop there are two signed mixes and one unverified batch, but zero confirmed dispatch units. Full traversal reaches 1,180 confirmed units, including mini packs and reworked stock. The 300 units connected only by an unsigned note remain in review. The separate 450-unit shipment is not linked in this fixture; that is not a safety finding.
 
 ## Why hold approval is separate
-The LLM has no write or approval tool. The server recomputes the full scope, signs the exact shipment IDs, workspace, revision and ten-minute expiry, and shows that list in a review dialog. Commit checks the signature, workspace, approval, expiry and graph revision, rechecks scope, then creates a decision and updates shipment state in one conditional graph write. Replaying a completed token returns its original receipt. Nothing contacts a real supplier or warehouse.
+The LLM has no write or approval tool. The server recomputes the full scope, signs the exact shipment IDs, workspace, revision, graph epoch, unique intent ID and ten-minute expiry, and shows that list in a review dialog. Commit checks the signature, workspace, approval, expiry and graph revision, rechecks scope, then creates a decision and updates shipment state in one conditional graph write. Replaying a completed token returns its original receipt. Nothing contacts a real supplier or warehouse.
 
 ## Hosting choice
 FalkorDB is the primary graph database. Supabase is not required for this small sandbox. Local setup runs the official FalkorDBLite engine over loopback TCP. A managed FALKORDB_URL replaces the embedded connection without changing the graph queries. The hosted embedded graph is ephemeral; a cold start can reset its data. A signed session secret does not make the embedded database durable.

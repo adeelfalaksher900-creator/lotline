@@ -1,0 +1,10 @@
+{
+  "source": "actual continuous browser recording",
+  "wait_cut_start": 107.5,
+  "wait_cut_end": 113.0,
+  "removed_wait_seconds": 5.5,
+  "actual_result_hold_at": 116.1,
+  "hold_seconds": 5.5,
+  "result_appears_at": 110.3,
+  "duration": 133
+}

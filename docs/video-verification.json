@@ -1,0 +1,11 @@
+{
+  "file": "demo/Lotline_Demo_1080p.mp4",
+  "bytes": 12199260,
+  "base64_length": 16265680,
+  "sha256": "83543a4c94291b2a0d7bda7933fa314bb612fc4cc24cd9c8dec817094f0453bb",
+  "resolution": "1920x1080",
+  "fps": 30,
+  "duration_seconds": 133,
+  "audio": "AAC,128kbps,48kHz,mono,normalized original synthetic narration",
+  "video_reencoded_after_hyperframes": false
+}

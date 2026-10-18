@@ -1,1 +1,9 @@
-{"framework":"fastapi","buildCommand":"python3 scripts/prepare_runtime.py","functions":{"app.py":{"maxDuration":60}}}
+{
+  "framework": "fastapi",
+  "buildCommand": "npm ci && npm run build && python3 scripts/prepare_runtime.py",
+  "functions": {
+    "app.py": {
+      "maxDuration": 60
+    }
+  }
+}

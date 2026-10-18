@@ -6,7 +6,7 @@ A working recall investigation agent for **Graph Hacks: Context for AI Agents**,
 
 **Track: Agents That Act on Connected Data**
 
-[Open the workspace](https://lotline-eight-indol.vercel.app) · [Graph model](docs/ARCHITECTURE.md) · [Cypher tools](queries) · [Research](docs/RESEARCH.md) · [Technical walkthrough](docs/BUILDER_GUIDE.md) · [Build write-up](docs/BLOG.md)
+[Open the workspace](https://lotline-eight-indol.vercel.app) · [Watch the 1080p demo](demo/Lotline_Demo_1080p.mp4) · [Graph model](docs/ARCHITECTURE.md) · [Cypher tools](queries) · [Research](docs/RESEARCH.md) · [Technical walkthrough](docs/BUILDER_GUIDE.md) · [Build write-up](docs/BLOG.md)
 
 ![The working Lotline workspace, with graph lineage and an evidence-backed shipment scope](assets/02-full-chain.png)
 
@@ -54,7 +54,7 @@ The graph starts with 46 domain nodes and 43 domain relationships: 17 lots, 11 s
 
 ## Run locally
 
-Linux or macOS, Python 3.12+, Node.js 22+. Windows users should use WSL2 or the Docker connection option.
+Verified setup: Ubuntu 24.04 with glibc 2.39, Python 3.12 and Node.js 24. Use a compatible Linux environment for the embedded native engine. The optional remote FalkorDB connection avoids running that engine in the application host. Windows users should use WSL2 with a compatible distribution.
 
 ```bash
 git clone https://github.com/adeelfalaksher900-creator/lotline.git
@@ -144,6 +144,8 @@ Current verification evidence and open limits are recorded in [docs/VERIFICATION
 ## Design and hosting
 
 React, TypeScript and Vite provide the workspace. FastAPI serves the static build and API. A focused material lineage, equivalent shipment table and source dialogs keep evidence next to the action. [DESIGN.md](DESIGN.md) owns tokens and [UX-CONTRACT.md](UX-CONTRACT.md) describes behavior.
+
+For a source-based Vercel deployment, choose the FastAPI framework, Python 3.12 and Node 22 or newer. Install with `pip install -r requirements.txt`; the checked-in build command runs `npm ci`, builds the frontend, and prepares the native runtime. Set `LOTLINE_SESSION_SECRET`, `LOTLINE_PLANNER_URL` and `LOTLINE_PLANNER_KEY` as server environment variables. A prebuilt `dist/` folder is not required in Git.
 
 The Vercel native adapter uses checksum-verified, version-pinned Ubuntu shared libraries for the graph child process only. It never replaces host libraries. Native dependency licences and source locations accompany the generated runtime. This adapter is separate from the simpler local or managed-database setup.
 

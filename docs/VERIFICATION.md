@@ -17,10 +17,16 @@ Updated during the build on 18 October 2026. Only completed checks are marked pa
 | Design token structure | Passed with warnings | 0 errors; component metadata warnings were corrected; semantic tokens are consumed by generated CSS |
 | Hosted graph and action workflow | Passed | Actual deployed LLM selection, FalkorDB scope, unknown input, reviewed hold and idempotent replay; see live-verification.json |
 | Desktop/mobile browser checks | Passed | Four axe scans reported zero violations for WCAG A/AA rule tags; focus restored, no mobile page overflow, no page errors |
-| 1080p narrated demo | In progress | Actual working website recording with existing ElevenLabs narration |
+| 1080p narrated demo | Passed | 133 seconds, 1920×1080, 30fps, H.264 video and normalized synthetic narration; representative exported frames reviewed |
 | Docker Compose | Not run | Docker is unavailable; official image default entrypoint is preserved |
 
 ## Limits
 No real customer data, ERP connection, operator study, formal penetration-test certification, production load test or enterprise tenancy assessment. No numerical judging rubric was published on the inspected official pages.
 
 The automated accessibility checks are a scoped check, not a claim of complete accessibility conformance. Strix authentication repeatedly failed to become available, so no external Strix penetration scan is claimed. Review coverage comes from the documented integration and API boundary checks.
+
+## Fresh public checkout
+
+A clean clone of public commit `dae5e9a82416612658fe36ad1a6d970aa7e94b32` was installed in a new Python 3.12 virtual environment. Its five real-FalkorDB integration tests, `npm ci`, production build and read-only MCP protocol verification all passed. This independently checks the published source rather than only the build worktree. A Starlette TestClient deprecation warning remains; no test failed.
+
+The final source-only Vercel deployment also passed hosted verification. Its build runs npm ci, the production frontend build and the native runtime preparation, so a prebuilt dist directory is not needed in the repository.

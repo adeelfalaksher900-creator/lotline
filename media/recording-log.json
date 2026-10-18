@@ -1,0 +1,110 @@
+{
+  "viewport": {
+    "width": 1920,
+    "height": 924
+  },
+  "backend": "FastAPI + actual FalkorDBLite + Workers AI",
+  "steps": [
+    {
+      "label": "Workspace",
+      "time": 2.29
+    },
+    {
+      "label": "Source lineage",
+      "time": 9.29
+    },
+    {
+      "label": "One-hop",
+      "time": 17.54
+    },
+    {
+      "label": "Shallow result",
+      "time": 23.29
+    },
+    {
+      "label": "LLM comparison",
+      "time": 35.67
+    },
+    {
+      "label": "Repack lineage",
+      "time": 41.29
+    },
+    {
+      "label": "Rework lineage",
+      "time": 46.29
+    },
+    {
+      "label": "Shipment path",
+      "time": 51.56
+    },
+    {
+      "label": "Production evidence",
+      "time": 56.33
+    },
+    {
+      "label": "Close record",
+      "time": 61.02
+    },
+    {
+      "label": "Unsigned shipment",
+      "time": 64.53
+    },
+    {
+      "label": "Unsigned note",
+      "time": 69.01
+    },
+    {
+      "label": "Return to scope",
+      "time": 73.01
+    },
+    {
+      "label": "Actual tool trace",
+      "time": 74.98
+    },
+    {
+      "label": "Close tool trace",
+      "time": 80.47
+    },
+    {
+      "label": "Review exact hold",
+      "time": 83.55
+    },
+    {
+      "label": "Review list",
+      "time": 92.28
+    },
+    {
+      "label": "Explicit approval",
+      "time": 96.47
+    },
+    {
+      "label": "Apply sandbox action",
+      "time": 98.62
+    },
+    {
+      "label": "Decision receipt",
+      "time": 101.66
+    },
+    {
+      "label": "Unknown lot",
+      "time": 115.8
+    },
+    {
+      "label": "Source records",
+      "time": 116.64
+    },
+    {
+      "label": "Setup and limits",
+      "time": 121.5
+    },
+    {
+      "label": "Evidence before action",
+      "time": 130.87
+    },
+    {
+      "label": "Finished",
+      "time": 133
+    }
+  ],
+  "pageErrors": []
+}

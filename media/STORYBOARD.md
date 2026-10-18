@@ -4,7 +4,7 @@ One continuous scene, 1920 × 1080, 30 fps, 133 seconds. The main visual is an a
 
 ## Continuous scene: evidence before action
 
-Assets: `demo/tour.webm`, `narration.mp3`, `transcript.json`, `../DESIGN.md` and the product favicon at `../web/public/favicon.svg`. Use relative asset files. Narration is the existing ElevenLabs generation, not a new generation.
+Assets: `demo/tour-edited.mp4` (derived from the continuous actual `demo/tour.webm` recording), `narration.mp3`, `transcript.json`, `../DESIGN.md` and the product favicon at `../web/public/favicon.svg`. Use relative asset files. Narration is the existing ElevenLabs generation, not a new generation.
 
 | Time | Actual product interaction | Visual support |
 | --- | --- | --- |

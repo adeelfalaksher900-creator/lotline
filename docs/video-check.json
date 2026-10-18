@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "lint_errors": 0,
+  "lint_warnings": [
+    {
+      "code": "timeline_track_too_dense",
+      "message": "Track 3 has 6 timed elements in this HTML file. Smaller sub-compositions keep timelines easier to read, iterate on, and diff."
+    },
+    {
+      "code": "timeline_track_too_dense",
+      "message": "Track 6 has 5 timed elements in this HTML file. Smaller sub-compositions keep timelines easier to read, iterate on, and diff."
+    }
+  ],
+  "runtime_errors": 0,
+  "layout_errors": 0,
+  "sample_times": [
+    1,
+    23,
+    37,
+    54,
+    69,
+    76,
+    89,
+    102,
+    111,
+    124,
+    131
+  ],
+  "contrast_checks": 45,
+  "contrast_passed": 45,
+  "version": "0.8.170",
+  "warning_review": "Chapter labels share a continuous-scene timeline. These are maintainability warnings; no runtime, layout or contrast errors were found."
+}
