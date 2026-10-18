@@ -37,7 +37,7 @@ components:
 ## Overview
 Operations analysts need to follow a suspect material, verify the records and approve a bounded action. The visual reference is a quality-control workspace and material flow sheet, not a marketing dashboard. An asymmetrical three-part workspace keeps the investigation, lineage and review in view. A blue-grey foundation makes amber uncertainty and red flagged stock meaningful. The signature is the material path with a separate dashed evidence-gap branch.
 
-Product register. English UI for a worldwide hackathon audience. Desktop-first investigation, phone-readable evidence and review. No location or compliance assumptions. Only fictional operational data appears. Native system fallbacks preserve legibility if web fonts fail.
+Product register. English UI for a worldwide hackathon audience. Desktop-first investigation, phone-readable evidence and review. No location or compliance assumptions. Only fictional operational data appears. Manrope and IBM Plex Mono are bundled locally with their OFL licences. Native system fallbacks preserve legibility if fonts fail.
 
 Token model A: this frontmatter is canonical. scripts/export_tokens.py generates web/src/tokens.css. Components consume the generated semantic variables. Only chart tints, state overlays and white-on-dark controls derive transparencies from those tokens. No dark theme is offered.
 

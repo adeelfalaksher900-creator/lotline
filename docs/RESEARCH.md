@@ -32,4 +32,4 @@ The numbers are deterministic fixture facts, not customer results or a performan
 The official pages inspected do not give weighted numerical judging scores. The project should be assessed on observable evidence: useful connected reasoning, FalkorDB centrality, an actual action boundary, source/path transparency, honest unknowns and reproducibility. No prize is guaranteed.
 
 ## Scope limits
-No real ERP/WMS integration, certified recall decision process, authenticated enterprise roles, complete EPCIS import, independent operator study, or production-scale benchmark. The public embedded instance may reset on cold starts. Its operational decisions are fictional. The local setup and managed-URL option are documented separately.
+No real ERP/WMS integration, certified recall decision process, authenticated enterprise roles, complete EPCIS import, independent operator study, or production-scale benchmark. The public embedded instance may reset on cold starts or after an hour of inactivity. Its operational decisions are fictional. The local setup and managed-URL option are documented separately.

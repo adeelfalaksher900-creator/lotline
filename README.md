@@ -61,13 +61,14 @@ git clone https://github.com/adeelfalaksher900-creator/lotline.git
 cd lotline
 python3 -m venv .venv
 source .venv/bin/activate
+python3 -m pip install --upgrade pip
 python3 -m pip install -r requirements.txt
 npm ci
 npm run build
 python3 -m uvicorn app:app --host 127.0.0.1 --port 8000
 ```
 
-Open http://127.0.0.1:8000. No graph account is required. The official FalkorDBLite package supplies the real native engine, which Lotline launches on loopback TCP. The embedded graph is a temporary sandbox and resets when its process restarts.
+Open http://127.0.0.1:8000. No graph account is required. The official FalkorDBLite package supplies the real native engine, which Lotline launches on loopback TCP. The embedded graph is a temporary sandbox and resets when its process restarts or after one hour without workspace activity. Each process admits at most 64 active embedded workspaces; existing workspaces are not evicted to admit a new visitor. Managed graphs are not expired by the app.
 
 For frontend development, run the API in one terminal, then `npm run dev` in another. Vite proxies `/api` to port 8000.
 
@@ -86,22 +87,24 @@ The optional [Docker Compose file](docker-compose.yml) binds graph ports to loop
 
 Without a planner, the local intent router still invokes the same real graph tools and labels its mode in the trace. To use an LLM, deploy [workers/planner.js](workers/planner.js) with a Workers AI binding named `AI`, a server-only secret `PLANNER_KEY`, and a rate limiter named `RATE_LIMITER`. Set `LOTLINE_PLANNER_URL` and `LOTLINE_PLANNER_KEY` on the FastAPI server. Set a stable random `LOTLINE_SESSION_SECRET` for hosted deployments. See [.env.example](.env.example).
 
-The planner accepts a bounded question and selected lot, and returns only a validated tool name and lot ID. It receives no real customer information. Cloudflare's applicable quotas or charges are separate from this project.
+The planner accepts a bounded question and selected lot, and returns only a validated tool name and lot ID. The server independently binds the lot explicitly requested in the question (or the selected case), so a model response cannot silently substitute another lot. It receives no real customer information. Cloudflare's applicable quotas or charges are separate from this project.
 
 ## Essential Cypher
 
 ```cypher
 MATCH p=(root:Lot {id:$lot_id})-[:INPUT_TO*0..6]->(lot:Lot)
-OPTIONAL MATCH (lot)-[:DISPATCHED]->(shipment:Shipment)-[:DELIVERED_TO]->(site:Site)
+OPTIONAL MATCH (lot)-[dispatch:DISPATCHED]->(shipment:Shipment)-[delivery:DELIVERED_TO]->(site:Site)
 RETURN lot.id AS lot_id,
        [n IN nodes(p) | n.id] AS path,
        [r IN relationships(p) | r.source_id] AS source_ids,
        [r IN relationships(p) | r.evidence] AS evidence,
+       dispatch.evidence AS dispatch_evidence,
+       delivery.evidence AS delivery_evidence,
        properties(shipment) AS shipment,
        properties(site) AS site
 ```
 
-`$lot_id` is a bound parameter. Depth is chosen from a fixed 1-to-6 catalogue. The full product queries, including source retrieval and history, are in [queries/](queries). The action write is in [backend/actions.py](backend/actions.py).
+`$lot_id` is a bound parameter. Depth is chosen from a fixed 1-to-6 catalogue. All transformation, dispatch and delivery evidence must be confirmed before a shipment enters a hold. Truncated scope is explicitly partial and cannot produce a plan. The full product queries, including source retrieval and history, are in [queries/](queries). The action write is in [backend/actions.py](backend/actions.py).
 
 ## Tools and MCP
 
@@ -123,7 +126,7 @@ Use that module as a stdio MCP server. `LOTLINE_MCP_WORKSPACE` selects its isola
 
 ## The review boundary
 
-A hold plan signs the workspace, lot, exact confirmed shipment IDs, graph revision, nonce and ten-minute expiry. The review dialog shows included and excluded stock. Commit verifies the signature, workspace, explicit approval, expiry and current scope. A conditional graph write records the decision, links its shipments, updates stock status and advances the revision. Retrying the same completed intent returns the original receipt.
+Review tokens and session cookies use separate signature purposes. A hold plan signs the workspace, lot, exact confirmed shipment IDs, graph revision, nonce and ten-minute expiry. The review dialog shows included and excluded stock. Commit verifies the signature, workspace, explicit approval, expiry and current scope. A conditional graph write records the decision, links its shipments, updates stock status and advances the revision. Retrying the same completed intent returns the original receipt.
 
 Every action is synthetic. No supplier, customer, warehouse or ERP service is contacted.
 
@@ -137,13 +140,13 @@ npm run typecheck
 npm run build
 ```
 
-The graph integration tests cover repack/rework scope, duplicate counting, unknown and injection inputs, unverified evidence, exact holds, expired/tampered/stale tokens, idempotency, cross-workspace plans, CSRF and Origin checks. They execute actual FalkorDB. The MCP verification initializes a protocol session, lists the four tools, runs the depth comparison and tests an unknown lot.
+The graph integration tests cover repack/rework scope, duplicate counting, unknown and injection inputs, unverified evidence, exact holds, expired/tampered/stale tokens, idempotency, cross-workspace plans, CSRF and full-origin checks, chunked-body limits, planner entity binding, capacity/idle expiry and a truncated-scope guard. They execute actual FalkorDB. The MCP verification initializes a protocol session, lists the four tools, runs the depth comparison and tests an unknown lot.
 
-Current verification evidence and open limits are recorded in [docs/VERIFICATION.md](docs/VERIFICATION.md). Read it for the tested deployment rather than assuming every environment is identical.
+Current verification evidence and open limits are recorded in [docs/VERIFICATION.md](docs/VERIFICATION.md). Read it for the tested deployment rather than assuming every environment is identical. The [final product review](docs/FINAL_REVIEW.md) records the corrected flows and current screenshots.
 
 ## Design and hosting
 
-React, TypeScript and Vite provide the workspace. FastAPI serves the static build and API. A focused material lineage, equivalent shipment table and source dialogs keep evidence next to the action. [DESIGN.md](DESIGN.md) owns tokens and [UX-CONTRACT.md](UX-CONTRACT.md) describes behavior.
+React, TypeScript and Vite provide the workspace. FastAPI serves the static build and API. A focused material lineage, equivalent shipment table and source dialogs keep evidence next to the action. The interface self-hosts its fonts, including their OFL licences, and the development server binds to loopback by default. [DESIGN.md](DESIGN.md) owns tokens and [UX-CONTRACT.md](UX-CONTRACT.md) describes behavior.
 
 For a source-based Vercel deployment, choose the FastAPI framework, Python 3.12 and Node 22 or newer. Install with `pip install -r requirements.txt`; the checked-in build command runs `npm ci`, builds the frontend, and prepares the native runtime. Set `LOTLINE_SESSION_SECRET`, `LOTLINE_PLANNER_URL` and `LOTLINE_PLANNER_KEY` as server environment variables. A prebuilt `dist/` folder is not required in Git.
 
@@ -151,7 +154,7 @@ The Vercel native adapter uses checksum-verified, version-pinned Ubuntu shared l
 
 ## Scope and limits
 
-This is a hackathon prototype with synthetic data. It has no production ERP integration, independent operator validation, regulatory certification, authenticated enterprise roles, or production-scale benchmark. The hosted embedded graph may reset at a cold start. Its anonymous workspace controls are a demo boundary, not enterprise tenant security. Use a managed database and appropriate production identity before extending it to real operations.
+This is a hackathon prototype with synthetic data. It has no production ERP integration, independent operator validation, regulatory certification, authenticated enterprise roles, or production-scale benchmark. The hosted embedded graph may reset at a cold start or after one hour without activity. Request bodies are streamed into an 8 KB bound, per-process rate-limit bookkeeping is bounded, and health checks do not create a graph. Its anonymous workspace controls are a demo boundary, not enterprise tenant security. Use a managed database and appropriate production identity before extending it to real operations.
 
 ## AI assistance
 

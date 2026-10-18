@@ -1,4 +1,4 @@
-"""Human-written, bounded Cypher tools. The model never writes queries."""
+"""Fixed, bounded Cypher templates. The runtime model never writes queries."""
 from __future__ import annotations
 
 import time
@@ -14,11 +14,13 @@ QUERIES = {
 for depth in range(1, 7):
     QUERIES[f"scope_{depth}"] = f"""
 MATCH p=(root:Lot {{id:$lot_id}})-[:INPUT_TO*0..{depth}]->(lot:Lot)
-OPTIONAL MATCH (lot)-[:DISPATCHED]->(shipment:Shipment)-[:DELIVERED_TO]->(site:Site)
+OPTIONAL MATCH (lot)-[dispatch:DISPATCHED]->(shipment:Shipment)-[delivery:DELIVERED_TO]->(site:Site)
 RETURN lot.id AS lot_id, lot.name AS lot_name,
        [n IN nodes(p) | n.id] AS path,
        [r IN relationships(p) | r.source_id] AS source_ids,
        [r IN relationships(p) | r.evidence] AS evidence,
+       dispatch.evidence AS dispatch_evidence,
+       delivery.evidence AS delivery_evidence,
        length(p) AS hops,
        properties(shipment) AS shipment,
        properties(site) AS site
@@ -52,7 +54,9 @@ def investigate(graph, lot_id: str, depth: int = 6) -> dict:
         shipment = row["shipment"]
         if not shipment:
             continue
-        valid = all(value == "confirmed" for value in row["evidence"])
+        valid = (all(value == "confirmed" for value in row["evidence"])
+                 and row["dispatch_evidence"] == "confirmed"
+                 and row["delivery_evidence"] == "confirmed")
         item = {**shipment, "lot_id": row["lot_id"], "lot_name": row["lot_name"], "path": row["path"], "source_ids": sorted(set(row["source_ids"])), "hops": row["hops"], "site": row["site"], "confidence": "confirmed" if valid else "needs_review"}
         current = shipments.get(shipment["id"])
         # A shipment counts exactly once. A verified route wins over an
@@ -75,6 +79,8 @@ def investigate(graph, lot_id: str, depth: int = 6) -> dict:
         summary += f" Another {totals['review_units']:,} units need evidence review and are excluded from the hold plan."
     if not shipments:
         summary = f"No shipments are reachable within {depth} transformation hop{'s' if depth != 1 else ''}. This is a depth-limited result, not a safety finding."
+    if incomplete:
+        summary = "The graph exceeded the 500-row scope limit. These totals are partial; no hold plan can be prepared. Narrow the source lot and investigate again."
     return {"outcome": "scope_incomplete" if incomplete else "answered_with_paths", "lot_id": lot_id, "lot": resolved[0]["lot"], "depth": depth, "revision": revision(graph), "confirmed": confirmed, "uncertain": uncertain, "documents": [r["document"] for r in documents], "totals": totals, "summary": summary, "trace": trace, "truncated": incomplete}
 
 

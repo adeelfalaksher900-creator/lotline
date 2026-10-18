@@ -1,43 +1,1261 @@
-import {useEffect,useRef,useState} from 'react';
-import {ArrowRight,ArrowUpRight,ArrowDownToLine,Box,Check,CheckCircle2,ChevronDown,ChevronRight,Clock3,Database,FileText,GitBranch,Layers3,LifeBuoy,MapPin,MessageSquareText,Network,PackageCheck,Search,Send,ShieldCheck,Sparkles,TriangleAlert,Waypoints,X} from 'lucide-react';
-import {Button,Modal,Notice,number} from './components';
-import Lineage from './Lineage';
-import type {Decision,GraphNode,Plan,Result,Scenario,Shipment,Workspace} from './types';
+import { useEffect, useRef, useState } from "react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  ArrowDownToLine,
+  Box,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Clock3,
+  Database,
+  FileText,
+  GitBranch,
+  Layers3,
+  LifeBuoy,
+  MapPin,
+  MessageSquareText,
+  Network,
+  PackageCheck,
+  Search,
+  Send,
+  ShieldCheck,
+  Sparkles,
+  TriangleAlert,
+  Waypoints,
+  X,
+} from "lucide-react";
+import { Button, Modal, Notice, number } from "./components";
+import Lineage from "./Lineage";
+import type {
+  Decision,
+  GraphNode,
+  Plan,
+  Result,
+  Scenario,
+  Shipment,
+  Workspace,
+} from "./types";
 
-const repo='https://github.com/adeelfalaksher900-creator/lotline';
-export default function App(){
- const [ws,setWs]=useState<Workspace|null>(null),[scenario,setScenario]=useState<Scenario|null>(null),[result,setResult]=useState<Result|null>(null);
- const [question,setQuestion]=useState(''),[busy,setBusy]=useState(''),[error,setError]=useState(''),[notice,setNotice]=useState('');
- const [tab,setTab]=useState('investigation'),[filter,setFilter]=useState('all'),[selected,setSelected]=useState<Shipment|null>(null),[doc,setDoc]=useState<GraphNode|null>(null),[node,setNode]=useState<GraphNode|null>(null);
- const [plan,setPlan]=useState<Plan|null>(null),[approved,setApproved]=useState(false),[help,setHelp]=useState(false),[traceOpen,setTraceOpen]=useState(false);
- const [history,setHistory]=useState<Decision[]>([]),[search,setSearch]=useState('');
- const sequence=useRef(0),composer=useRef<HTMLTextAreaElement>(null);
- async function api<T>(path:string,body?:unknown):Promise<T>{const r=await fetch(`/api/${path}`,{credentials:'same-origin',method:body?'POST':'GET',headers:body?{'Content-Type':'application/json','x-lotline-csrf':ws?.csrf||''}:{},body:body?JSON.stringify(body):undefined});const data=await r.json();if(!r.ok)throw new Error(typeof data.detail==='string'?data.detail:'Check the request and try again.');return data as T}
- async function boot(){setError('');try{const data=await api<Workspace>('workspace');setWs(data);setHistory(data.history);const params=new URLSearchParams(location.search);const s=data.scenarios.find(s=>s.id===params.get('case'))||data.scenarios[0];setScenario(s);setQuestion(s.question);setTab(['investigation','evidence','decisions'].includes(params.get('view')||'')?params.get('view')!:'investigation')}catch(e){setError((e as Error).message)}}
- useEffect(()=>{boot()},[]);
- useEffect(()=>{if(scenario){const u=new URL(location.href);u.searchParams.set('case',scenario.id);u.searchParams.set('view',tab);window.history.replaceState(null,'',u);document.title=`Lotline · ${scenario.title}`}},[scenario,tab]);
- function choose(s:Scenario){sequence.current++;setScenario(s);setResult(null);setQuestion(s.question);setError('');setNotice('');setPlan(null);setTab('investigation');setFilter('all');setBusy('')}
- async function run(q=question,depth=6,useAgent=true){if(!scenario||busy)return;const seq=++sequence.current;setBusy('investigate');setError('');setNotice('');try{const data=await api<Result>('investigate',{question:q,lot_id:scenario.lot_id,depth,use_agent:useAgent});if(seq!==sequence.current)return;setResult(data);setWs(w=>w?{...w,graph:data.graph}:w);setQuestion(q);if(data.history)setHistory(data.history);setTab(data.planner.tool==='history'?'decisions':'investigation')}catch(e){if(seq===sequence.current)setError((e as Error).message)}finally{if(seq===sequence.current)setBusy('')}}
- async function review(){if(!result||busy)return;setBusy('plan');setError('');try{setPlan(await api<Plan>('plan',{lot_id:result.lot_id}));setApproved(false)}catch(e){setError((e as Error).message)}finally{setBusy('')}}
- async function confirm(){if(!plan||!approved||busy)return;setBusy('commit');setError('');try{const data=await api<{decision:Decision;replayed:boolean}>('commit',{token:plan.token,approved:true});setPlan(null);setNotice(`Sandbox hold recorded for ${number(data.decision.units)} units. No external stock system was contacted.`);setHistory(h=>[data.decision,...h.filter(x=>x.id!==data.decision.id)]);if(scenario){const updated=await api<Result>('investigate',{question:'Refresh scope',lot_id:result?.lot_id||scenario.lot_id,depth:6,use_agent:false});setResult(updated);setWs(w=>w?{...w,graph:updated.graph}:w)}}catch(e){setError((e as Error).message)}finally{setBusy('')}}
- const documents=ws?.graph.nodes.filter(n=>n.kind==='Document')||[];
- const rows=result?[...result.confirmed,...result.uncertain].filter(s=>filter==='all'||(filter==='confirmed'?s.confidence==='confirmed':s.confidence!=='confirmed')):[];
- const pending=result?.confirmed.filter(s=>s.status!=='held').length||0;
- const docsForNode=node?documents.filter(d=>ws?.graph.edges.some(e=>(e.source===node.id||e.target===node.id)&&e.source_id===d.id)):[];
- if(!ws||!scenario)return <main className="boot"><img src="/favicon.svg" alt=""/><h1>Lotline</h1>{error?<><Notice kind="error" text={error}/><Button onClick={boot}>Reconnect to graph</Button></>:<p>Opening your recall workspace…</p>}</main>;
- return <div className="app-shell"><a className="skip-link" href="#main">Skip to investigation</a><aside className="sidebar"><a href="/" className="brand"><img src="/favicon.svg" alt=""/><span>lotline<span className="brand-dot">.</span></span></a><button className="workspace-switch" onClick={()=>setHelp(true)}><span className="workspace-icon"><Box size={17}/></span><span>Recall workspace<small>Synthetic supply network</small></span><ChevronDown size={14}/></button><p className="rail-label">WORKSPACE</p><nav aria-label="Workspace">{[{id:'investigation',icon:Waypoints,label:'Investigations',count:'3'},{id:'evidence',icon:FileText,label:'Source records',count:documents.length},{id:'decisions',icon:ShieldCheck,label:'Decision log',count:history.length}].map(({id,icon:Icon,label,count})=><button key={id} className={`nav-item ${tab===id?'active':''}`} onClick={()=>setTab(id)}><Icon size={18}/><span>{label}</span><span className="nav-count">{count}</span></button>)}</nav><div className="cases"><div className="rail-label case-label"><span>OPEN CASES</span><span>3</span></div>{ws.scenarios.map((s,i)=><button key={s.id} className={`case-item ${scenario.id===s.id?'selected':''}`} onClick={()=>choose(s)}><span className={`case-dot ${i===0?'red':''}`}/><span>{s.title}<small>{s.lot_id}</small></span>{scenario.id===s.id?<ChevronRight size={14}/>:null}</button>)}</div><div className="rail-bottom"><div className="graph-health"><span className="health-dot"/><span>FalkorDB connected</span><Database size={14}/></div><p>{ws.graph.nodes.length} records · {ws.graph.edges.length} links</p><button className="help-button" onClick={()=>setHelp(true)}><LifeBuoy size={17}/>How this demo works<ArrowUpRight size={14}/></button><div className="profile"><span>AF</span><div>Adeel Falak Sher<small>Solo builder · Graph Hacks</small></div></div></div></aside><div className="workspace-main"><header className="topbar"><div className="breadcrumbs"><span>Workspace</span><ChevronRight size={14}/><span>{tab==='investigation'?'Investigations':tab==='evidence'?'Source records':'Decision log'}</span></div><div className="top-actions"><span className="sandbox-label"><span/>Synthetic sandbox</span><a href={repo} target="_blank" rel="noreferrer" className="source-link">Source code<ArrowUpRight size={14}/></a></div></header><div className="mobile-case"><label htmlFor="mobile-case">Current case</label><select id="mobile-case" value={scenario.id} onChange={e=>choose(ws.scenarios.find(s=>s.id===e.target.value)!)}>{ws.scenarios.map(s=><option key={s.id} value={s.id}>{s.title}</option>)}</select></div><main id="main" className="main-content"><div className="page-title"><div><div className="eyebrow"><span className="priority-dot"/>{tab==='investigation'?'RECALL INVESTIGATION':tab==='evidence'?'EVIDENCE LIBRARY':'REVIEWED ACTIONS'}</div><h1>{tab==='investigation'?scenario.title:tab==='evidence'?'The records behind the result.':'Every action has a receipt.'}</h1><p>{tab==='investigation'?<>Trace the source. Verify the scope. Act with evidence.</>:tab==='evidence'?'Original synthetic records used by the graph.':'Sandbox holds linked to the shipments you reviewed.'}</p></div>{tab==='investigation'?<Button className="secondary export" onClick={()=>{window.location.href=`/api/export?lot_id=${encodeURIComponent(result?.lot_id||scenario.lot_id)}`}}><ArrowDownToLine size={16}/>Export evidence</Button>:null}</div>{error?<Notice kind="error" text={error}/>:null}{notice?<Notice kind="success" text={notice}/>:null}
- {tab==='investigation'?<div className="investigation-layout"><div className="investigation-canvas"><div className="case-context"><span className="context-icon"><PackageCheck size={23}/></span><div><span className="quiet-label">{result?.outcome==='unknown_lot'?'REQUESTED LOT':'FLAGGED SOURCE LOT'}</span><strong>{result?.lot_id||scenario.lot_id}</strong><p>{result?.outcome==='unknown_lot'?'No matching source record':result?.lot?.name||scenario.product}</p></div><div className="case-context-end"><span className="status-tag alert">{result?.outcome==='unknown_lot'?'Unknown lot':'Review required'}</span>{result?.outcome!=='unknown_lot'?<button onClick={()=>setDoc(documents.find(d=>d.id===scenario.source_id)!)}>Read supplier alert<ArrowUpRight size={13}/></button>:null}</div></div><div className="scope-heading"><div><span className="quiet-label">INVESTIGATION SCOPE</span><h2>{result?result.outcome==='unknown_lot'?'No matching lot':`${number(result.totals.units)} units, with a traceable path.`:'How far did this lot travel?'}</h2></div><div className="depth-control" role="group" aria-label="Traversal depth"><button className={result?.depth===1?'selected':''} disabled={!!busy} onClick={()=>run('Show only one transformation hop',1,false)}>1 hop</button><button className={result?.depth===6?'selected':''} disabled={!!busy} onClick={()=>run('Trace the full chain',6,false)}>Full chain</button></div></div>{result?<div className="scope-numbers"><div><strong>{result.totals.shipments}</strong><span>confirmed shipments</span></div><div><strong>{result.totals.sites}</strong><span>destinations</span></div><div className={result.totals.review_units?'warning-number':''}><strong>{number(result.totals.review_units)}</strong><span>units need review</span></div></div>:<div className="scope-intro"><Network size={17}/><span>Run an investigation to find connected shipments and missing records.</span></div>}
- <Lineage graph={ws.graph} root={result?.lot_id||scenario.lot_id} result={result} onNode={setNode}/>
- {result?.comparison?<div className="comparison"><div><span>1-hop lookup</span><strong>{number(result.comparison.one_hop.units)} units</strong></div><ArrowRight size={20}/><div><span>Full graph traversal</span><strong>{number(result.comparison.full_chain.units)} units</strong></div><p>Repacking and rework carry the original lot forward.</p></div>:null}
- <section className="shipments-panel"><div className="panel-heading"><div><h2>{result?'Connected shipments':'Awaiting the first trace'}</h2><p>{result?`${rows.length} records shown · confirmed and unverified paths stay separate.`:'Run the agent or choose a traversal depth above.'}</p></div>{result?<select aria-label="Filter shipments" value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">All paths</option><option value="confirmed">Confirmed</option><option value="review">Needs review</option></select>:null}</div>{result&&rows.length?<div className="table-scroll"><table><thead><tr><th>Shipment / lot</th><th>Destination</th><th>Units</th><th>Evidence</th><th><span className="sr-only">View path</span></th></tr></thead><tbody>{rows.map(s=><tr key={s.id}><td><button className="row-link" onClick={()=>setSelected(s)}>{s.id}</button><small>{s.lot_id}</small></td><td>{s.site.name}<small>{s.status==='held'?'Sandbox hold recorded':s.status==='warehouse'?'At distribution':'Dispatched'}</small></td><td className="mono">{number(s.units)}</td><td><span className={`status-tag ${s.confidence==='confirmed'?'confirmed':'warning'}`}>{s.confidence==='confirmed'?<Check size={11}/>:<TriangleAlert size={11}/>} {s.confidence==='confirmed'?'Confirmed':'Needs review'}</span></td><td><button className="icon-button" aria-label={`View ${s.id} evidence path`} onClick={()=>setSelected(s)}><ArrowUpRight size={16}/></button></td></tr>)}</tbody></table></div>:<div className="empty-table"><GitBranch size={25}/><span>{result?result.summary:'Your shipment scope will appear here, with the path behind every result.'}</span></div>}</section><p className="data-note"><ShieldCheck size={13}/>A missing connection is an evidence gap, never a safety certificate.</p></div>
- <aside className="agent-panel" aria-label="Investigation agent"><header><span className="agent-mark"><Waypoints size={18}/></span><div><h2>Investigation agent</h2><p>Connected context. Bounded actions.</p></div><span className="agent-online"/></header><div className="agent-body"><div className="agent-date">CASE WORKSPACE · 18 OCT 2026</div><div className="agent-message"><span className="small-agent-mark"><Waypoints size={15}/></span><div><p>I’ll follow this lot through mixing, repacking and rework.</p><p>Then we’ll separate confirmed shipments from stock with missing evidence.</p></div></div>{result?<><div className="agent-question"><p>{question}</p></div><div className="agent-message result-message"><span className="small-agent-mark"><Waypoints size={15}/></span><div><span className="result-label"><CheckCircle2 size={13}/>GRAPH RESULT</span><p>{result.summary}</p>{result.uncertain.length?<div className="agent-gap"><TriangleAlert size={15}/><span>{number(result.totals.review_units)} units need a signed batch record. They are excluded from the hold plan.</span></div>:null}<button className="trace-toggle" aria-expanded={traceOpen} onClick={()=>setTraceOpen(v=>!v)}><Database size={13}/>{result.trace.length} verified tool calls<ChevronDown size={13}/></button>{traceOpen?<div className="tool-trace"><p>{result.planner.mode==='llm'?`LLM: ${result.planner.model}`:result.planner.mode==='direct_tool'?'Direct graph tool':'Local intent router'}</p><p>{result.planner.reason}</p>{result.trace.map((t,i)=><details key={i}><summary><code>{t.tool}</code><span>{t.rows} rows · {t.duration_ms} ms</span></summary><pre>{t.query}</pre></details>)}</div>:null}{result.outcome==='answered_with_paths'&&result.confirmed.length?<div className="action-preview"><div><ShieldCheck size={16}/><strong>{pending?'A plan, ready for your review.':'Sandbox hold recorded.'}</strong></div><p>{pending?'Review the exact shipments before applying a sandbox hold.':'Open the decision log to see its receipt.'}</p>{pending?<Button onClick={review} busy={busy==='plan'} disabled={!!busy}>Review hold plan<ArrowRight size={14}/></Button>:<Button className="secondary" onClick={()=>setTab('decisions')}>View decision log<ArrowRight size={14}/></Button>}</div>:null}</div></div></>:<div className="agent-start"><span>START WITH A QUESTION</span><p>“Which shipments contain this lot, including repacked stock?”</p><button onClick={()=>run()}>Investigate this case<ArrowRight size={15}/></button></div>}{busy==='investigate'?<div className="agent-loading" role="status"><span className="loading-dot"/>Selecting a tool and querying the graph…</div>:null}</div><div className="composer-wrap"><div className="suggestions"><button disabled={!!busy} onClick={()=>run(`Compare one hop with the full chain for ${scenario.lot_id}`)}><Layers3 size={12}/>Compare depth</button><button disabled={!!busy} onClick={()=>{setQuestion(`Investigate LOT-NOT-REAL and show only evidence in the graph`);composer.current?.focus()}}>Test an unknown lot<ArrowUpRight size={12}/></button></div><form className="composer" noValidate onSubmit={e=>{e.preventDefault();run()}}><label className="sr-only" htmlFor="agent-question">Ask the investigation agent</label><textarea id="agent-question" ref={composer} value={question} maxLength={1200} onChange={e=>setQuestion(e.target.value)} placeholder="Ask about this lot…" onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();run()}}}/><div><span><Database size={11}/>FalkorDB context</span><button type="submit" aria-label="Run investigation" disabled={!!busy||!question.trim()}><ArrowUpRight size={19}/></button></div></form><p className="composer-footnote">Agent proposes. You review. Sandbox actions only.</p></div></aside></div>:null}
- {tab==='evidence'?<section className="records-view"><div className="search-field"><Search size={17}/><label className="sr-only" htmlFor="record-search">Search source records</label><input id="record-search" placeholder="Search records or document IDs" value={search} onChange={e=>setSearch(e.target.value)}/></div><div className="record-list">{documents.filter(d=>`${d.id} ${d.name}`.toLowerCase().includes(search.toLowerCase())).map(d=><button key={d.id} onClick={()=>setDoc(d)}><FileText size={21}/><div><small>{d.id} · SYNTHETIC RECORD</small><h3>{d.name}</h3><p>{d.body?.replace('FICTIONAL TRAINING RECORD. ','').slice(0,150)}…</p></div><ArrowUpRight size={17}/></button>)}</div>{documents.filter(d=>`${d.id} ${d.name}`.toLowerCase().includes(search.toLowerCase())).length===0?<div className="empty-table">No matching records. Try a lot number or document title.</div>:null}</section>:null}
- {tab==='decisions'?<section className="decisions-view"><div className="section-note"><ShieldCheck size={21}/><p>Each receipt records the reviewed lot, exact shipment IDs and units. All actions stay inside your sandbox workspace.</p></div>{history.length?history.map(d=><article className="decision" key={d.id}><span className="decision-icon"><CheckCircle2 size={22}/></span><div><div className="decision-title"><h3>Sandbox hold recorded</h3><span className="status-tag confirmed">{number(d.units)} units</span></div><p><code>{d.lot_id}</code> · {d.shipment_ids.length} shipments</p><div className="shipment-chips">{d.shipment_ids.map(id=><span key={id}>{id}</span>)}</div><small>{new Date(d.at).toLocaleString('en-GB',{timeZoneName:'short'})} · Receipt {d.id.slice(0,8)}</small><p>{d.note}</p></div></article>):<div className="empty-decisions"><ShieldCheck size={42}/><h2>No actions yet.</h2><p>Investigate a case, review the confirmed scope, then approve a sandbox hold.</p><Button onClick={()=>setTab('investigation')}>Back to investigation<ArrowRight size={15}/></Button></div>}<p className="data-note">{ws.persistence==='ephemeral_demo'?'This hosted sandbox uses an embedded graph. A server restart may reset its decision history. Export your evidence to keep a copy.':'Decision history is stored in the connected FalkorDB instance.'}</p></section>:null}
- </main><footer className="workspace-footer"><span>Lotline · Evidence before action.</span><span>Built for Graph Hacks 2026</span></footer></div>
- {selected?<Modal title={`Evidence path · ${selected.id}`} onClose={()=>setSelected(null)}><div className="modal-content"><p className="modal-lead">{selected.site.name} · {number(selected.units)} units</p><span className={`status-tag ${selected.confidence==='confirmed'?'confirmed':'warning'}`}>{selected.confidence==='confirmed'?'Confirmed path':'Needs evidence review'}</span><ol className="path-list">{[...selected.path,selected.id,selected.site.id].map((id,i)=><li key={`${id}-${i}`}><span>{i+1}</span><div><code>{id}</code><p>{ws.graph.nodes.find(n=>n.id===id)?.name}</p></div></li>)}</ol><h3>Source records</h3><div className="source-buttons">{selected.source_ids.map(id=><button key={id} onClick={()=>{setSelected(null);setDoc(documents.find(d=>d.id===id)!)}}><FileText size={15}/>{id}<ArrowUpRight size={13}/></button>)}</div><p className="fineprint">This path is returned by the same FalkorDB query as the shipment result. It is not generated as an explanation afterward.</p></div></Modal>:null}
- {doc?<Modal title={doc.name} onClose={()=>setDoc(null)}><div className="modal-content source-document"><div className="doc-meta"><span><FileText size={15}/>{doc.id}</span><span>SYNTHETIC RECORD</span></div><p>{doc.body}</p><div className="doc-stamp">Lotline training dataset · 18 October 2026<br/>No real supplier or customer data.</div></div></Modal>:null}
- {node?<Modal title={node.id} onClose={()=>setNode(null)}><div className="modal-content"><span className="quiet-label">{node.kind.toUpperCase()}</span><h2>{node.name}</h2><p>{node.note}</p><h3>Connected source records</h3><div className="source-buttons">{docsForNode.map(d=><button key={d.id} onClick={()=>{setNode(null);setDoc(d)}}><FileText size={15}/>{d.name}<ArrowUpRight size={13}/></button>)}</div></div></Modal>:null}
- {plan?<Modal title="Review the sandbox hold" wide onClose={()=>{if(busy!=='commit')setPlan(null)}}><div className="modal-content"><div className="review-banner"><ShieldCheck size={23}/><div><strong>{number(plan.units)} units · {plan.shipments.length} shipments</strong><p>Only confirmed paths from {plan.lot_id} are included.</p></div></div><div className="table-scroll review-table"><table><thead><tr><th>Shipment</th><th>Destination</th><th>Units</th></tr></thead><tbody>{plan.shipments.map(s=><tr key={s.id}><td><code>{s.id}</code><small>{s.lot_id}</small></td><td>{s.site.name}</td><td className="mono">{number(s.units)}</td></tr>)}</tbody></table></div>{plan.excluded.length?<Notice text={`${number(plan.excluded.reduce((s,x)=>s+x.units,0))} units with unverified evidence are excluded. Request the missing signed production record.`}/>:null}<p className="fineprint">This writes a decision and updates shipment status in your fictional graph. No supplier, customer or stock platform will be contacted. The review expires in 10 minutes.</p><label className="approval"><input type="checkbox" checked={approved} onChange={e=>setApproved(e.target.checked)}/><span>I reviewed these exact shipments and approve this sandbox hold.</span></label>{error?<Notice kind="error" text={error}/>:null}<div className="modal-actions"><Button className="secondary" onClick={()=>setPlan(null)} disabled={busy==='commit'}>Cancel</Button><Button disabled={!approved||!!busy} busy={busy==='commit'} onClick={confirm}>Apply sandbox hold<ArrowRight size={15}/></Button></div></div></Modal>:null}
- {help?<Modal title="A small graph. A complete investigation." onClose={()=>setHelp(false)}><div className="modal-content help-content"><p>Lotline follows a suspect source lot through mixing, repacking and rework, then prepares a reviewable shipment hold.</p><ol><li>Choose a case and ask the agent to investigate.</li><li>Compare one hop with the full chain. Open a shipment to inspect its path and records.</li><li>Review the exact confirmed scope. Approve a sandbox hold to see a decision receipt.</li></ol><Notice text="All records and companies are fictional. This is an operational sandbox, not a production recall decision system."/><p>FalkorDB runs the graph queries. The agent trace shows whether tool selection used the language model or the local router. No result is supplied when the graph is unavailable.</p><p>{ws.persistence==='ephemeral_demo'?'Embedded hosting keeps this demo easy to reproduce. Its state may reset on a server restart. Use a managed FalkorDB URL for persistent graph storage.':'This deployment uses managed FalkorDB for persistent graph storage.'}</p><a href={repo} target="_blank" rel="noreferrer">Read the setup, model and queries<ArrowUpRight size={14}/></a></div></Modal>:null}
- </div>
+const repo = "https://github.com/adeelfalaksher900-creator/lotline";
+export default function App() {
+  const [ws, setWs] = useState<Workspace | null>(null),
+    [scenario, setScenario] = useState<Scenario | null>(null),
+    [result, setResult] = useState<Result | null>(null);
+  const [question, setQuestion] = useState(""),
+    [resultQuestion, setResultQuestion] = useState(""),
+    [busy, setBusy] = useState(""),
+    [error, setError] = useState(""),
+    [notice, setNotice] = useState(""),
+    [connected, setConnected] = useState(true);
+  const [tab, setTab] = useState("investigation"),
+    [filter, setFilter] = useState("all"),
+    [selected, setSelected] = useState<Shipment | null>(null),
+    [doc, setDoc] = useState<GraphNode | null>(null),
+    [node, setNode] = useState<GraphNode | null>(null);
+  const [plan, setPlan] = useState<Plan | null>(null),
+    [approved, setApproved] = useState(false),
+    [help, setHelp] = useState(false),
+    [traceOpen, setTraceOpen] = useState(false);
+  const [history, setHistory] = useState<Decision[]>([]),
+    [search, setSearch] = useState("");
+  const sequence = useRef(0),
+    composer = useRef<HTMLTextAreaElement>(null);
+  async function api<T>(path: string, body?: unknown): Promise<T> {
+    const controller = new AbortController(),
+      timer = window.setTimeout(() => controller.abort(), 45000);
+    try {
+      const r = await fetch(`/api/${path}`, {
+        credentials: "same-origin",
+        signal: controller.signal,
+        method: body ? "POST" : "GET",
+        headers: body
+          ? {
+              "Content-Type": "application/json",
+              "x-lotline-csrf": ws?.csrf || "",
+            }
+          : {},
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      const data = await r
+        .json()
+        .catch(() => ({
+          detail: "The service did not return a valid response. Please retry.",
+        }));
+      if (r.status === 503) setConnected(false);
+      if (!r.ok)
+        throw new Error(
+          typeof data.detail === "string"
+            ? data.detail
+            : "Check the request and try again.",
+        );
+      setConnected(true);
+      return data as T;
+    } catch (e) {
+      if (e instanceof TypeError || controller.signal.aborted) {
+        setConnected(false);
+        throw new Error(
+          "The graph service could not be reached. Retry this request; reviewed actions reuse the same token.",
+        );
+      }
+      throw e;
+    } finally {
+      window.clearTimeout(timer);
+    }
+  }
+  async function boot() {
+    setError("");
+    try {
+      const data = await api<Workspace>("workspace");
+      setWs(data);
+      setHistory(data.history);
+      const params = new URLSearchParams(location.search);
+      const s =
+        data.scenarios.find((s) => s.id === params.get("case")) ||
+        data.scenarios[0];
+      setScenario(s);
+      setQuestion(s.question);
+      setTab(
+        ["investigation", "evidence", "decisions"].includes(
+          params.get("view") || "",
+        )
+          ? params.get("view")!
+          : "investigation",
+      );
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+  useEffect(() => {
+    boot();
+  }, []);
+  useEffect(() => {
+    if (scenario) {
+      const u = new URL(location.href);
+      u.searchParams.set("case", scenario.id);
+      u.searchParams.set("view", tab);
+      window.history.replaceState(null, "", u);
+      document.title = `Lotline · ${scenario.title}`;
+    }
+  }, [scenario, tab]);
+  function choose(s: Scenario) {
+    if (busy) return;
+    sequence.current++;
+    setResultQuestion("");
+    setSelected(null);
+    setDoc(null);
+    setNode(null);
+    setScenario(s);
+    setResult(null);
+    setQuestion(s.question);
+    setError("");
+    setNotice("");
+    setPlan(null);
+    setTab("investigation");
+    setFilter("all");
+    setBusy("");
+  }
+  async function run(q = question, depth = 6, useAgent = true) {
+    if (!scenario || busy || !q.trim()) return;
+    const seq = ++sequence.current;
+    setBusy("investigate");
+    setQuestion(q);
+    setError("");
+    setNotice("");
+    try {
+      const data = await api<Result>("investigate", {
+        question: q,
+        lot_id: result?.lot_id || scenario.lot_id,
+        depth,
+        use_agent: useAgent,
+      });
+      if (seq !== sequence.current) return;
+      setResult(data);
+      const matching = ws?.scenarios.find((s) => s.lot_id === data.lot_id);
+      if (matching) setScenario(matching);
+      setResultQuestion(q);
+      setWs((w) => (w ? { ...w, graph: data.graph } : w));
+      if (data.history) setHistory(data.history);
+      setTab(data.planner.tool === "history" ? "decisions" : "investigation");
+    } catch (e) {
+      if (seq === sequence.current) setError((e as Error).message);
+    } finally {
+      if (seq === sequence.current) setBusy("");
+    }
+  }
+  async function review() {
+    if (!result || busy) return;
+    setBusy("plan");
+    setError("");
+    try {
+      setPlan(await api<Plan>("plan", { lot_id: result.lot_id }));
+      setApproved(false);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy("");
+    }
+  }
+  async function confirm() {
+    if (!plan || !approved || busy) return;
+    setBusy("commit");
+    setError("");
+    try {
+      const data = await api<{ decision: Decision; replayed: boolean }>(
+        "commit",
+        { token: plan.token, approved: true },
+      );
+      setPlan(null);
+      setNotice(
+        `Sandbox hold recorded for ${number(data.decision.units)} units. No external stock system was contacted.`,
+      );
+      setHistory((h) => [
+        data.decision,
+        ...h.filter((x) => x.id !== data.decision.id),
+      ]);
+      if (scenario) {
+        const updated = await api<Result>("investigate", {
+          question: "Refresh scope",
+          lot_id: result?.lot_id || scenario.lot_id,
+          depth: 6,
+          use_agent: false,
+        });
+        setResult(updated);
+        setResultQuestion("Refresh confirmed scope after the reviewed hold");
+        setWs((w) => (w ? { ...w, graph: updated.graph } : w));
+      }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy("");
+    }
+  }
+  const documents = ws?.graph.nodes.filter((n) => n.kind === "Document") || [];
+  const activeLot = result?.lot_id || scenario?.lot_id;
+  const activeScenario = ws?.scenarios.find((s) => s.lot_id === activeLot);
+  const sourceAlert = documents.find((d) =>
+    ws?.graph.edges.some(
+      (e) => e.kind === "ABOUT" && e.source === d.id && e.target === activeLot,
+    ),
+  );
+  const rows = result
+    ? [...result.confirmed, ...result.uncertain].filter(
+        (s) =>
+          filter === "all" ||
+          (filter === "confirmed"
+            ? s.confidence === "confirmed"
+            : s.confidence !== "confirmed"),
+      )
+    : [];
+  const pending =
+    result?.confirmed.filter((s) => s.status !== "held").length || 0;
+  const docsForNode = node
+    ? documents.filter((d) =>
+        ws?.graph.edges.some(
+          (e) =>
+            (e.source === node.id || e.target === node.id) &&
+            e.source_id === d.id,
+        ),
+      )
+    : [];
+  if (!ws || !scenario)
+    return (
+      <main className="boot">
+        <img src="/favicon.svg" alt="" />
+        <h1>Lotline</h1>
+        {error ? (
+          <>
+            <Notice kind="error" text={error} />
+            <Button onClick={boot}>Reconnect to graph</Button>
+          </>
+        ) : (
+          <p>Opening your recall workspace…</p>
+        )}
+      </main>
+    );
+  return (
+    <div className="app-shell">
+      <a className="skip-link" href="#main">
+        Skip to investigation
+      </a>
+      <aside className="sidebar">
+        <a href="/" className="brand">
+          <img src="/favicon.svg" alt="" />
+          <span>
+            lotline<span className="brand-dot">.</span>
+          </span>
+        </a>
+        <button className="workspace-switch" onClick={() => setHelp(true)}>
+          <span className="workspace-icon">
+            <Box size={17} />
+          </span>
+          <span>
+            Recall workspace<small>Synthetic supply network</small>
+          </span>
+          <ChevronDown size={14} />
+        </button>
+        <p className="rail-label">WORKSPACE</p>
+        <nav aria-label="Workspace">
+          {[
+            {
+              id: "investigation",
+              icon: Waypoints,
+              label: "Investigations",
+              count: "3",
+            },
+            {
+              id: "evidence",
+              icon: FileText,
+              label: "Source records",
+              count: documents.length,
+            },
+            {
+              id: "decisions",
+              icon: ShieldCheck,
+              label: "Decision log",
+              count: history.length,
+            },
+          ].map(({ id, icon: Icon, label, count }) => (
+            <button
+              key={id}
+              className={`nav-item ${tab === id ? "active" : ""}`}
+              onClick={() => setTab(id)}
+            >
+              <Icon size={18} />
+              <span>{label}</span>
+              <span className="nav-count">{count}</span>
+            </button>
+          ))}
+        </nav>
+        <div className="cases">
+          <div className="rail-label case-label">
+            <span>OPEN CASES</span>
+            <span>3</span>
+          </div>
+          {ws.scenarios.map((s, i) => (
+            <button
+              key={s.id}
+              disabled={!!busy}
+              className={`case-item ${scenario.id === s.id ? "selected" : ""}`}
+              onClick={() => choose(s)}
+            >
+              <span className={`case-dot ${i === 0 ? "red" : ""}`} />
+              <span>
+                {s.title}
+                <small>{s.lot_id}</small>
+              </span>
+              {scenario.id === s.id ? <ChevronRight size={14} /> : null}
+            </button>
+          ))}
+        </div>
+        <div className="rail-bottom">
+          <div className={`graph-health ${connected ? "" : "unavailable"}`}>
+            <span className="health-dot" />
+            <span>
+              {connected
+                ? "FalkorDB connected"
+                : "Graph connection needs retry"}
+            </span>
+            <Database size={14} />
+          </div>
+          <p>
+            {ws.graph.nodes.length} records · {ws.graph.edges.length} links
+          </p>
+          <button className="help-button" onClick={() => setHelp(true)}>
+            <LifeBuoy size={17} />
+            How this demo works
+            <ArrowUpRight size={14} />
+          </button>
+          <div className="profile">
+            <span>AF</span>
+            <div>
+              Adeel Falak Sher<small>Solo builder · Graph Hacks</small>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <div className="workspace-main">
+        <header className="topbar">
+          <div className="breadcrumbs">
+            <span>Workspace</span>
+            <ChevronRight size={14} />
+            <span>
+              {tab === "investigation"
+                ? "Investigations"
+                : tab === "evidence"
+                  ? "Source records"
+                  : "Decision log"}
+            </span>
+          </div>
+          <div className="top-actions">
+            <span className="sandbox-label">
+              <span />
+              Synthetic sandbox
+            </span>
+            <a
+              href={repo}
+              target="_blank"
+              rel="noreferrer"
+              className="source-link"
+            >
+              Source code
+              <ArrowUpRight size={14} />
+            </a>
+          </div>
+        </header>
+        <div className="mobile-case">
+          <label htmlFor="mobile-case">Current case</label>
+          <select
+            id="mobile-case"
+            disabled={!!busy}
+            value={scenario.id}
+            onChange={(e) =>
+              choose(ws.scenarios.find((s) => s.id === e.target.value)!)
+            }
+          >
+            {ws.scenarios.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.title}
+              </option>
+            ))}
+          </select>
+        </div>
+        <main id="main" className="main-content">
+          <div className="page-title">
+            <div>
+              <div className="eyebrow">
+                <span className="priority-dot" />
+                {tab === "investigation"
+                  ? "RECALL INVESTIGATION"
+                  : tab === "evidence"
+                    ? "EVIDENCE LIBRARY"
+                    : "REVIEWED ACTIONS"}
+              </div>
+              <h1>
+                {tab === "investigation"
+                  ? result?.outcome === "unknown_lot"
+                    ? "Unknown lot investigation"
+                    : activeScenario?.title ||
+                      result?.lot?.name ||
+                      scenario.title
+                  : tab === "evidence"
+                    ? "The records behind the result."
+                    : "Every action has a receipt."}
+              </h1>
+              <p>
+                {tab === "investigation" ? (
+                  <>Trace the source. Verify the scope. Act with evidence.</>
+                ) : tab === "evidence" ? (
+                  "Original synthetic records used by the graph."
+                ) : (
+                  "Sandbox holds linked to the shipments you reviewed."
+                )}
+              </p>
+            </div>
+            {tab === "investigation" ? (
+              <Button
+                className="secondary export"
+                onClick={() => {
+                  window.location.href = `/api/export?lot_id=${encodeURIComponent(result?.lot_id || scenario.lot_id)}`;
+                }}
+              >
+                <ArrowDownToLine size={16} />
+                Export evidence
+              </Button>
+            ) : null}
+          </div>
+          {error ? <Notice kind="error" text={error} /> : null}
+          {notice ? <Notice kind="success" text={notice} /> : null}
+          {tab === "investigation" ? (
+            <div className="investigation-layout">
+              <div className="investigation-canvas">
+                <div className="case-context">
+                  <span className="context-icon">
+                    <PackageCheck size={23} />
+                  </span>
+                  <div>
+                    <span className="quiet-label">
+                      {result?.outcome === "unknown_lot"
+                        ? "REQUESTED LOT"
+                        : activeScenario
+                          ? "FLAGGED SOURCE LOT"
+                          : "INVESTIGATED LOT"}
+                    </span>
+                    <strong>{result?.lot_id || scenario.lot_id}</strong>
+                    <p>
+                      {result?.outcome === "unknown_lot"
+                        ? "No matching source record"
+                        : result?.lot?.name ||
+                          activeScenario?.product ||
+                          scenario.product}
+                    </p>
+                  </div>
+                  <div className="case-context-end">
+                    <span className="status-tag alert">
+                      {result?.outcome === "unknown_lot"
+                        ? "Unknown lot"
+                        : "Review required"}
+                    </span>
+                    {result?.outcome !== "unknown_lot" && sourceAlert ? (
+                      <button onClick={() => setDoc(sourceAlert)}>
+                        Read supplier alert
+                        <ArrowUpRight size={13} />
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+                <div className="scope-heading">
+                  <div>
+                    <span className="quiet-label">INVESTIGATION SCOPE</span>
+                    <h2>
+                      {result
+                        ? result.outcome === "unknown_lot"
+                          ? "No matching lot"
+                          : result.truncated
+                            ? "Incomplete scope — review required"
+                            : `${number(result.totals.units)} units, with a traceable path.`
+                        : "How far did this lot travel?"}
+                    </h2>
+                  </div>
+                  <div
+                    className="depth-control"
+                    role="group"
+                    aria-label="Traversal depth"
+                  >
+                    <button
+                      className={result?.depth === 1 ? "selected" : ""}
+                      disabled={!!busy}
+                      onClick={() =>
+                        run("Show only one transformation hop", 1, false)
+                      }
+                    >
+                      1 hop
+                    </button>
+                    <button
+                      className={result?.depth === 6 ? "selected" : ""}
+                      disabled={!!busy}
+                      onClick={() => run("Trace the full chain", 6, false)}
+                    >
+                      Full chain
+                    </button>
+                  </div>
+                </div>
+                {result ? (
+                  <div className="scope-numbers">
+                    <div>
+                      <strong>{result.totals.shipments}</strong>
+                      <span>confirmed shipments</span>
+                    </div>
+                    <div>
+                      <strong>{result.totals.sites}</strong>
+                      <span>destinations</span>
+                    </div>
+                    <div
+                      className={
+                        result.totals.review_units ? "warning-number" : ""
+                      }
+                    >
+                      <strong>{number(result.totals.review_units)}</strong>
+                      <span>units need review</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="scope-intro">
+                    <Network size={17} />
+                    <span>
+                      Run an investigation to find connected shipments and
+                      missing records.
+                    </span>
+                  </div>
+                )}
+                {result?.truncated ? <Notice text={result.summary} /> : null}
+                <Lineage
+                  graph={ws.graph}
+                  root={result?.lot_id || scenario.lot_id}
+                  result={result}
+                  onNode={setNode}
+                />
+                {result?.comparison ? (
+                  <div className="comparison">
+                    <div>
+                      <span>1-hop lookup</span>
+                      <strong>
+                        {number(result.comparison.one_hop.units)} units
+                      </strong>
+                    </div>
+                    <ArrowRight size={20} />
+                    <div>
+                      <span>Full graph traversal</span>
+                      <strong>
+                        {number(result.comparison.full_chain.units)} units
+                      </strong>
+                    </div>
+                    <p>Repacking and rework carry the original lot forward.</p>
+                  </div>
+                ) : null}
+                <section className="shipments-panel">
+                  <div className="panel-heading">
+                    <div>
+                      <h2>
+                        {result
+                          ? "Connected shipments"
+                          : "Awaiting the first trace"}
+                      </h2>
+                      <p>
+                        {result
+                          ? `${rows.length} records shown · confirmed and unverified paths stay separate.`
+                          : "Run the agent or choose a traversal depth above."}
+                      </p>
+                    </div>
+                    {result ? (
+                      <select
+                        aria-label="Filter shipments"
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
+                      >
+                        <option value="all">All paths</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="review">Needs review</option>
+                      </select>
+                    ) : null}
+                  </div>
+                  {result && rows.length ? (
+                    <div className="table-scroll">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Shipment / lot</th>
+                            <th>Destination</th>
+                            <th>Units</th>
+                            <th>Evidence</th>
+                            <th>
+                              <span className="sr-only">View path</span>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rows.map((s) => (
+                            <tr key={s.id}>
+                              <td>
+                                <button
+                                  className="row-link"
+                                  onClick={() => setSelected(s)}
+                                >
+                                  {s.id}
+                                </button>
+                                <small>{s.lot_id}</small>
+                              </td>
+                              <td>
+                                {s.site.name}
+                                <small>
+                                  {s.status === "held"
+                                    ? "Sandbox hold recorded"
+                                    : s.status === "warehouse"
+                                      ? "At distribution"
+                                      : "Dispatched"}
+                                </small>
+                              </td>
+                              <td className="mono">{number(s.units)}</td>
+                              <td>
+                                <span
+                                  className={`status-tag ${s.confidence === "confirmed" ? "confirmed" : "warning"}`}
+                                >
+                                  {s.confidence === "confirmed" ? (
+                                    <Check size={11} />
+                                  ) : (
+                                    <TriangleAlert size={11} />
+                                  )}{" "}
+                                  {s.confidence === "confirmed"
+                                    ? "Confirmed"
+                                    : "Needs review"}
+                                </span>
+                              </td>
+                              <td>
+                                <button
+                                  className="icon-button"
+                                  aria-label={`View ${s.id} evidence path`}
+                                  onClick={() => setSelected(s)}
+                                >
+                                  <ArrowUpRight size={16} />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="empty-table">
+                      <GitBranch size={25} />
+                      <span>
+                        {result
+                          ? result.summary
+                          : "Your shipment scope will appear here, with the path behind every result."}
+                      </span>
+                    </div>
+                  )}
+                </section>
+                <p className="data-note">
+                  <ShieldCheck size={13} />A missing connection is an evidence
+                  gap, never a safety certificate.
+                </p>
+              </div>
+              <aside className="agent-panel" aria-label="Investigation agent">
+                <header>
+                  <span className="agent-mark">
+                    <Waypoints size={18} />
+                  </span>
+                  <div>
+                    <h2>Investigation agent</h2>
+                    <p>Connected context. Bounded actions.</p>
+                  </div>
+                  <span className="agent-online" />
+                </header>
+                <div className="agent-body">
+                  <div className="agent-date">CASE WORKSPACE · 18 OCT 2026</div>
+                  <div className="agent-message">
+                    <span className="small-agent-mark">
+                      <Waypoints size={15} />
+                    </span>
+                    <div>
+                      <p>
+                        I’ll follow this lot through mixing, repacking and
+                        rework.
+                      </p>
+                      <p>
+                        Then we’ll separate confirmed shipments from stock with
+                        missing evidence.
+                      </p>
+                    </div>
+                  </div>
+                  {result ? (
+                    <>
+                      <div className="agent-question">
+                        <p>{resultQuestion}</p>
+                      </div>
+                      <div className="agent-message result-message">
+                        <span className="small-agent-mark">
+                          <Waypoints size={15} />
+                        </span>
+                        <div>
+                          <span className="result-label">
+                            <CheckCircle2 size={13} />
+                            GRAPH RESULT
+                          </span>
+                          <p>{result.summary}</p>
+                          {result.uncertain.length ? (
+                            <div className="agent-gap">
+                              <TriangleAlert size={15} />
+                              <span>
+                                {number(result.totals.review_units)} units have
+                                unverified evidence. They are excluded from the
+                                hold plan.
+                              </span>
+                            </div>
+                          ) : null}
+                          <button
+                            className="trace-toggle"
+                            aria-expanded={traceOpen}
+                            onClick={() => setTraceOpen((v) => !v)}
+                          >
+                            <Database size={13} />
+                            {result.trace.length} verified tool calls
+                            <ChevronDown size={13} />
+                          </button>
+                          {traceOpen ? (
+                            <div className="tool-trace">
+                              <p>
+                                {result.planner.mode === "llm"
+                                  ? `LLM: ${result.planner.model}`
+                                  : result.planner.mode === "direct_tool"
+                                    ? "Direct graph tool"
+                                    : "Local intent router"}
+                              </p>
+                              <p>{result.planner.reason}</p>
+                              {result.trace.map((t, i) => (
+                                <details key={i}>
+                                  <summary>
+                                    <code>{t.tool}</code>
+                                    <span>
+                                      {t.rows} rows · {t.duration_ms} ms
+                                    </span>
+                                  </summary>
+                                  <pre>{t.query}</pre>
+                                </details>
+                              ))}
+                            </div>
+                          ) : null}
+                          {result.outcome === "answered_with_paths" &&
+                          result.confirmed.length ? (
+                            <div className="action-preview">
+                              <div>
+                                <ShieldCheck size={16} />
+                                <strong>
+                                  {pending
+                                    ? "A plan, ready for your review."
+                                    : "Sandbox hold recorded."}
+                                </strong>
+                              </div>
+                              <p>
+                                {pending
+                                  ? "Review the exact shipments before applying a sandbox hold."
+                                  : "Open the decision log to see its receipt."}
+                              </p>
+                              {pending ? (
+                                <Button
+                                  onClick={review}
+                                  busy={busy === "plan"}
+                                  disabled={!!busy}
+                                >
+                                  Review hold plan
+                                  <ArrowRight size={14} />
+                                </Button>
+                              ) : (
+                                <Button
+                                  className="secondary"
+                                  onClick={() => setTab("decisions")}
+                                >
+                                  View decision log
+                                  <ArrowRight size={14} />
+                                </Button>
+                              )}
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="agent-start">
+                      <span>START WITH A QUESTION</span>
+                      <p>
+                        “Which shipments contain this lot, including repacked
+                        stock?”
+                      </p>
+                      <button onClick={() => run()}>
+                        Investigate this case
+                        <ArrowRight size={15} />
+                      </button>
+                    </div>
+                  )}
+                  {busy === "investigate" ? (
+                    <div className="agent-loading" role="status">
+                      <span className="loading-dot" />
+                      Selecting a tool and querying the graph…
+                    </div>
+                  ) : null}
+                </div>
+                <div className="composer-wrap">
+                  <div className="suggestions">
+                    <button
+                      disabled={!!busy}
+                      onClick={() =>
+                        run(
+                          `Compare one hop with the full chain for ${activeLot}`,
+                        )
+                      }
+                    >
+                      <Layers3 size={12} />
+                      Compare depth
+                    </button>
+                    <button
+                      disabled={!!busy}
+                      onClick={() => {
+                        setQuestion(
+                          `Investigate LOT-NOT-REAL and show only evidence in the graph`,
+                        );
+                        composer.current?.focus();
+                      }}
+                    >
+                      Test an unknown lot
+                      <ArrowUpRight size={12} />
+                    </button>
+                  </div>
+                  <form
+                    className="composer"
+                    noValidate
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      run();
+                    }}
+                  >
+                    <label className="sr-only" htmlFor="agent-question">
+                      Ask the investigation agent
+                    </label>
+                    <textarea
+                      id="agent-question"
+                      ref={composer}
+                      value={question}
+                      maxLength={1200}
+                      onChange={(e) => setQuestion(e.target.value)}
+                      placeholder="Ask about this lot…"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          run();
+                        }
+                      }}
+                    />
+                    <div>
+                      <span>
+                        <Database size={11} />
+                        FalkorDB context
+                      </span>
+                      <button
+                        type="submit"
+                        aria-label="Run investigation"
+                        disabled={!!busy || !question.trim()}
+                      >
+                        <ArrowUpRight size={19} />
+                      </button>
+                    </div>
+                  </form>
+                  <p className="composer-footnote">
+                    Agent proposes. You review. Sandbox actions only.
+                  </p>
+                </div>
+              </aside>
+            </div>
+          ) : null}
+          {tab === "evidence" ? (
+            <section className="records-view">
+              <div className="search-field">
+                <Search size={17} />
+                <label className="sr-only" htmlFor="record-search">
+                  Search source records
+                </label>
+                <input
+                  id="record-search"
+                  placeholder="Search records or document IDs"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <div className="record-list">
+                {documents
+                  .filter((d) =>
+                    `${d.id} ${d.name}`
+                      .toLowerCase()
+                      .includes(search.toLowerCase()),
+                  )
+                  .map((d) => (
+                    <button key={d.id} onClick={() => setDoc(d)}>
+                      <FileText size={21} />
+                      <div>
+                        <small>{d.id} · SYNTHETIC RECORD</small>
+                        <h3>{d.name}</h3>
+                        <p>
+                          {d.body
+                            ?.replace("FICTIONAL TRAINING RECORD. ", "")
+                            .slice(0, 150)}
+                          …
+                        </p>
+                      </div>
+                      <ArrowUpRight size={17} />
+                    </button>
+                  ))}
+              </div>
+              {documents.filter((d) =>
+                `${d.id} ${d.name}`
+                  .toLowerCase()
+                  .includes(search.toLowerCase()),
+              ).length === 0 ? (
+                <div className="empty-table">
+                  No matching records. Try a lot number or document title.
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+          {tab === "decisions" ? (
+            <section className="decisions-view">
+              <div className="section-note">
+                <ShieldCheck size={21} />
+                <p>
+                  Each receipt records the reviewed lot, exact shipment IDs and
+                  units. All actions stay inside your sandbox workspace.
+                </p>
+              </div>
+              {history.length ? (
+                history.map((d) => (
+                  <article className="decision" key={d.id}>
+                    <span className="decision-icon">
+                      <CheckCircle2 size={22} />
+                    </span>
+                    <div>
+                      <div className="decision-title">
+                        <h3>Sandbox hold recorded</h3>
+                        <span className="status-tag confirmed">
+                          {number(d.units)} units
+                        </span>
+                      </div>
+                      <p>
+                        <code>{d.lot_id}</code> · {d.shipment_ids.length}{" "}
+                        shipments
+                      </p>
+                      <div className="shipment-chips">
+                        {d.shipment_ids.map((id) => (
+                          <span key={id}>{id}</span>
+                        ))}
+                      </div>
+                      <small>
+                        {new Date(d.at).toLocaleString("en-GB", {
+                          timeZoneName: "short",
+                        })}{" "}
+                        · Receipt {d.id.slice(0, 8)}
+                      </small>
+                      <p>{d.note}</p>
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <div className="empty-decisions">
+                  <ShieldCheck size={42} />
+                  <h2>No actions yet.</h2>
+                  <p>
+                    Investigate a case, review the confirmed scope, then approve
+                    a sandbox hold.
+                  </p>
+                  <Button onClick={() => setTab("investigation")}>
+                    Back to investigation
+                    <ArrowRight size={15} />
+                  </Button>
+                </div>
+              )}
+              <p className="data-note">
+                {ws.persistence === "ephemeral_demo"
+                  ? "This hosted sandbox uses an embedded graph. A server restart or an hour without activity may reset its decision history. Export your evidence to keep a copy."
+                  : "Decision history is stored in the connected FalkorDB instance."}
+              </p>
+            </section>
+          ) : null}
+        </main>
+        <footer className="workspace-footer">
+          <span>Lotline · Evidence before action.</span>
+          <span>Built for Graph Hacks 2026</span>
+        </footer>
+      </div>
+      {selected ? (
+        <Modal
+          title={`Evidence path · ${selected.id}`}
+          onClose={() => setSelected(null)}
+        >
+          <div className="modal-content">
+            <p className="modal-lead">
+              {selected.site.name} · {number(selected.units)} units
+            </p>
+            <span
+              className={`status-tag ${selected.confidence === "confirmed" ? "confirmed" : "warning"}`}
+            >
+              {selected.confidence === "confirmed"
+                ? "Confirmed path"
+                : "Needs evidence review"}
+            </span>
+            <ol className="path-list">
+              {[...selected.path, selected.id, selected.site.id].map(
+                (id, i) => (
+                  <li key={`${id}-${i}`}>
+                    <span>{i + 1}</span>
+                    <div>
+                      <code>{id}</code>
+                      <p>{ws.graph.nodes.find((n) => n.id === id)?.name}</p>
+                    </div>
+                  </li>
+                ),
+              )}
+            </ol>
+            <h3>Source records</h3>
+            <div className="source-buttons">
+              {selected.source_ids.map((id) => (
+                <button
+                  key={id}
+                  onClick={() => {
+                    setSelected(null);
+                    setDoc(documents.find((d) => d.id === id)!);
+                  }}
+                >
+                  <FileText size={15} />
+                  {id}
+                  <ArrowUpRight size={13} />
+                </button>
+              ))}
+            </div>
+            <p className="fineprint">
+              This path is returned by the same FalkorDB query as the shipment
+              result. It is not generated as an explanation afterward.
+            </p>
+          </div>
+        </Modal>
+      ) : null}
+      {doc ? (
+        <Modal title={doc.name} onClose={() => setDoc(null)}>
+          <div className="modal-content source-document">
+            <div className="doc-meta">
+              <span>
+                <FileText size={15} />
+                {doc.id}
+              </span>
+              <span>SYNTHETIC RECORD</span>
+            </div>
+            <p>{doc.body}</p>
+            <div className="doc-stamp">
+              Lotline training dataset · 18 October 2026
+              <br />
+              No real supplier or customer data.
+            </div>
+          </div>
+        </Modal>
+      ) : null}
+      {node ? (
+        <Modal title={node.id} onClose={() => setNode(null)}>
+          <div className="modal-content">
+            <span className="quiet-label">{node.kind.toUpperCase()}</span>
+            <h2>{node.name}</h2>
+            <p>{node.note}</p>
+            <h3>Connected source records</h3>
+            <div className="source-buttons">
+              {docsForNode.map((d) => (
+                <button
+                  key={d.id}
+                  onClick={() => {
+                    setNode(null);
+                    setDoc(d);
+                  }}
+                >
+                  <FileText size={15} />
+                  {d.name}
+                  <ArrowUpRight size={13} />
+                </button>
+              ))}
+            </div>
+          </div>
+        </Modal>
+      ) : null}
+      {plan ? (
+        <Modal
+          title="Review the sandbox hold"
+          wide
+          onClose={() => {
+            if (busy !== "commit") setPlan(null);
+          }}
+        >
+          <div className="modal-content">
+            <div className="review-banner">
+              <ShieldCheck size={23} />
+              <div>
+                <strong>
+                  {number(plan.units)} units · {plan.shipments.length} shipments
+                </strong>
+                <p>Only confirmed paths from {plan.lot_id} are included.</p>
+              </div>
+            </div>
+            <div className="table-scroll review-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Shipment</th>
+                    <th>Destination</th>
+                    <th>Units</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {plan.shipments.map((s) => (
+                    <tr key={s.id}>
+                      <td>
+                        <code>{s.id}</code>
+                        <small>{s.lot_id}</small>
+                      </td>
+                      <td>{s.site.name}</td>
+                      <td className="mono">{number(s.units)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {plan.excluded.length ? (
+              <Notice
+                text={`${number(plan.excluded.reduce((s, x) => s + x.units, 0))} units with unverified evidence are excluded. Request the missing signed production record.`}
+              />
+            ) : null}
+            <p className="fineprint">
+              This writes a decision and updates shipment status in your
+              fictional graph. No supplier, customer or stock platform will be
+              contacted. Review valid until{" "}
+              {new Date(plan.expires_at * 1000).toLocaleTimeString("en-GB", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+              .
+            </p>
+            <label className="approval">
+              <input
+                type="checkbox"
+                checked={approved}
+                onChange={(e) => setApproved(e.target.checked)}
+              />
+              <span>
+                I reviewed these exact shipments and approve this sandbox hold.
+              </span>
+            </label>
+            {error ? <Notice kind="error" text={error} /> : null}
+            <div className="modal-actions">
+              <Button
+                className="secondary"
+                onClick={() => setPlan(null)}
+                disabled={busy === "commit"}
+              >
+                Cancel
+              </Button>
+              <Button
+                disabled={!approved || !!busy}
+                busy={busy === "commit"}
+                onClick={confirm}
+              >
+                Apply sandbox hold
+                <ArrowRight size={15} />
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      ) : null}
+      {help ? (
+        <Modal
+          title="A small graph. A complete investigation."
+          onClose={() => setHelp(false)}
+        >
+          <div className="modal-content help-content">
+            <p>
+              Lotline follows a suspect source lot through mixing, repacking and
+              rework, then prepares a reviewable shipment hold.
+            </p>
+            <ol>
+              <li>Choose a case and ask the agent to investigate.</li>
+              <li>
+                Compare one hop with the full chain. Open a shipment to inspect
+                its path and records.
+              </li>
+              <li>
+                Review the exact confirmed scope. Approve a sandbox hold to see
+                a decision receipt.
+              </li>
+            </ol>
+            <Notice text="All records and companies are fictional. This is an operational sandbox, not a production recall decision system." />
+            <p>
+              FalkorDB runs the graph queries. The agent trace shows whether
+              tool selection used the language model or the local router. No
+              result is supplied when the graph is unavailable.
+            </p>
+            <p>
+              {ws.persistence === "ephemeral_demo"
+                ? "Embedded hosting keeps this demo easy to reproduce. Its state may reset on a server restart or after an hour without activity. Use a managed FalkorDB URL for persistent graph storage."
+                : "This deployment uses managed FalkorDB for persistent graph storage."}
+            </p>
+            <a href={repo} target="_blank" rel="noreferrer">
+              Read the setup, model and queries
+              <ArrowUpRight size={14} />
+            </a>
+          </div>
+        </Modal>
+      ) : null}
+    </div>
+  );
 }

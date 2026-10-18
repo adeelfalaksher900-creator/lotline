@@ -1,0 +1,40 @@
+{
+  "checks": {
+    "logo": true,
+    "resultQuestionStable": true,
+    "correctMilkSource": true,
+    "fixedDepthUsesCurrentLot": true,
+    "caseSwitchDisabled": true,
+    "modalFits": true,
+    "focusRestored": true,
+    "unknownHasNoAlert": true,
+    "noMobileOverflow": true
+  },
+  "reports": [
+    {
+      "name": "desktop-start",
+      "violations": []
+    },
+    {
+      "name": "cross-lot-result",
+      "violations": []
+    },
+    {
+      "name": "desktop-result",
+      "violations": []
+    },
+    {
+      "name": "hold-review",
+      "violations": []
+    },
+    {
+      "name": "unknown-result",
+      "violations": []
+    },
+    {
+      "name": "mobile-result",
+      "violations": []
+    }
+  ],
+  "pageErrors": []
+}

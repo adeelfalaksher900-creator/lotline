@@ -22,3 +22,6 @@ HYPERFRAMES_BROWSER_PATH=/path/to/chromium npm run render -- --fps 30 --quality 
 ```
 
 The final composition check reported zero runtime or layout errors and 45 passing contrast checks. Two non-blocking maintainability warnings concern the chapter-label tracks in this single continuous scene. The authored source, check report and recording step log are kept with the production files. This documentation does not claim an external penetration test or a production benchmark.
+
+## Final product alignment
+The final review preserved the demonstrated case, graph totals, evidence paths, review action, receipt and unknown-lot outcome. The narration remains accurate. Request limits, token-purpose separation, dispatch/delivery evidence checks and cross-lot attribution were strengthened in the current source. The interface now bundles the same font families locally. These changes require no new narration or fabricated footage.

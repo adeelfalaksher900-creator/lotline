@@ -39,7 +39,7 @@ At one transformation hop there are two signed mixes and one unverified batch, b
 The LLM has no write or approval tool. The server recomputes the full scope, signs the exact shipment IDs, workspace, revision, graph epoch, unique intent ID and ten-minute expiry, and shows that list in a review dialog. Commit checks the signature, workspace, approval, expiry and graph revision, rechecks scope, then creates a decision and updates shipment state in one conditional graph write. Replaying a completed token returns its original receipt. Nothing contacts a real supplier or warehouse.
 
 ## Hosting choice
-FalkorDB is the primary graph database. Supabase is not required for this small sandbox. Local setup runs the official FalkorDBLite engine over loopback TCP. A managed FALKORDB_URL replaces the embedded connection without changing the graph queries. The hosted embedded graph is ephemeral; a cold start can reset its data. A signed session secret does not make the embedded database durable.
+FalkorDB is the primary graph database. Supabase is not required for this small sandbox. Local setup runs the official FalkorDBLite engine over loopback TCP. A managed FALKORDB_URL replaces the embedded connection without changing the graph queries. The hosted embedded graph is ephemeral; a cold start or an hour of inactivity can reset its data. A signed session secret does not make the embedded database durable.
 
 ## Try explaining these yourself
 1. Why does a simple source-lot lookup miss the repack and rework shipments?

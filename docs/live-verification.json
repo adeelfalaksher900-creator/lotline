@@ -1,5 +1,8 @@
 {
   "health": "passed",
+  "favicon": "passed",
+  "same_origin_browser_requests": "passed",
+  "cross_lot_units": 240,
   "one_hop_units": 0,
   "full_units": 1180,
   "review_units": 300,

@@ -34,4 +34,9 @@ Show the shallow/full contrast early; open a repack or rework shipment path; ins
 
 ## Before final submission
 
-Confirm the public/unlisted YouTube video opens, review the code and builder guide personally, confirm the selected track and title, and submit only after the participant's review. The agent must leave the hackathon form unsubmitted as requested.
+Confirm the public/unlisted YouTube video opens, review the code and builder guide personally, confirm the selected track and title, and submit only after the participant's review. The participant has authorised submission once the product, video and required fields are complete. Never submit with a missing or placeholder demo URL.
+
+## Final focused review
+Corrected cross-lot source-alert attribution, stable result/question association, case switching during pending requests, missing hosted favicon, independent planner entity binding, confirmation of dispatch/delivery evidence, purpose-specific signatures, bounded request streaming and bookkeeping, idle workspace expiry, and explicit incomplete-scope copy. Regression checks are listed in VERIFICATION.md. These changes do not constitute a comprehensive penetration test.
+
+The dependency pass also replaced affected Vite with 7.3.7, bound the dev server to loopback, and self-hosted the interface fonts with their licences. Readable formatting makes the UI easier for the participant to inspect and explain.

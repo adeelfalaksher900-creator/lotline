@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import defaultdict, deque
+from collections import OrderedDict, deque
 import hashlib
 import hmac
 import os
@@ -16,11 +16,13 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from backend import actions
 from backend.agent import select_tool
-from backend.database import DATA, ROOT, graph_for, snapshot
+from backend.database import DATA, ROOT, connection, graph_for, snapshot
 from backend.tools import compare_depth, decision_history, investigate
 
 app = FastAPI(title="Lotline", description="Evidence-first recall investigation, synthetic sandbox", version="1.0.0")
-_requests = defaultdict(deque)
+_requests: OrderedDict[str, deque] = OrderedDict()
+MAX_BODY_BYTES = 8000
+MAX_RATE_BUCKETS = 1024
 
 
 class InvestigateRequest(BaseModel):
@@ -55,9 +57,11 @@ async def security_boundary(request: Request, call_next):
     cookie = request.cookies.get("lotline_session")
     if cookie:
         try:
-            payload = actions.verify(cookie)
-            if payload.get("expires", 0) > time.time():
-                workspace = payload.get("workspace")
+            payload = actions.verify(cookie, "session")
+            candidate = payload.get("workspace")
+            expires = payload.get("expires")
+            if isinstance(candidate, str) and re.fullmatch(r"[a-f0-9]{32}", candidate) and type(expires) is int and expires > time.time():
+                workspace = candidate
         except actions.ActionError:
             pass
     if not workspace:
@@ -68,14 +72,33 @@ async def security_boundary(request: Request, call_next):
     request.state.workspace = workspace
     if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
         origin = request.headers.get("origin")
-        if origin and urlparse(origin).netloc != request.headers.get("host"):
-            return JSONResponse({"detail": "Cross-origin changes are not allowed."}, 403)
+        if origin:
+            try:
+                parsed_origin = urlparse(origin)
+                same_origin = parsed_origin.netloc == request.headers.get("host") and parsed_origin.scheme == request.url.scheme
+            except ValueError:
+                same_origin = False
+            if not same_origin:
+                return JSONResponse({"detail": "Cross-origin changes are not allowed."}, 403)
         if not secrets.compare_digest(request.headers.get("x-lotline-csrf", ""), csrf(workspace)):
             return JSONResponse({"detail": "Refresh your workspace before making this change."}, 403)
-        if len(await request.body()) > 8000:
+        content_length = request.headers.get("content-length")
+        if content_length and (not content_length.isdecimal() or int(content_length) > MAX_BODY_BYTES):
             return JSONResponse({"detail": "Request is too large."}, 413)
-        bucket = _requests[workspace]
+        body = bytearray()
+        async for chunk in request.stream():
+            if len(body) + len(chunk) > MAX_BODY_BYTES:
+                return JSONResponse({"detail": "Request is too large."}, 413)
+            body.extend(chunk)
+        # BaseHTTPMiddleware's cached Request replays this bounded body to the route.
+        request._body = bytes(body)
         now = time.monotonic()
+        while _requests and next(iter(_requests.values()))[-1] < now - 60:
+            _requests.popitem(last=False)
+        if workspace not in _requests and len(_requests) >= MAX_RATE_BUCKETS:
+            return JSONResponse({"detail": "The demo is busy. Please retry in a minute."}, 429)
+        bucket = _requests.setdefault(workspace, deque())
+        _requests.move_to_end(workspace)
         while bucket and bucket[0] < now - 60:
             bucket.popleft()
         if len(bucket) >= 24:
@@ -87,7 +110,7 @@ async def security_boundary(request: Request, call_next):
         response = JSONResponse({"detail": "The graph service is unavailable. Retry after it recovers. No result was inferred."}, 503)
     response.headers.update({"Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "strict-origin-when-cross-origin", "X-Frame-Options": "DENY"})
     if new:
-        response.set_cookie("lotline_session", actions.sign({"workspace": workspace, "expires": int(time.time()) + 86400}), max_age=86400, httponly=True, secure=request.url.scheme == "https", samesite="strict", path="/")
+        response.set_cookie("lotline_session", actions.sign({"workspace": workspace, "expires": int(time.time()) + 86400}, "session"), max_age=86400, httponly=True, secure=request.url.scheme == "https", samesite="strict", path="/")
     return response
 
 
@@ -98,9 +121,8 @@ async def action_error(request: Request, error: actions.ActionError):
 
 @app.get("/api/health")
 def health(request: Request):
-    graph = graph_for(request.state.workspace)
-    result = graph.ro_query("RETURN 1 AS ok").result_set
-    return {"status": "ok" if result == [[1]] else "error", "database": "FalkorDB", "dataset": DATA["version"], "synthetic": True, "persistence": "managed" if os.environ.get('FALKORDB_URL') else "ephemeral_demo"}
+    result = connection().connection.ping()
+    return {"status": "ok" if result else "error", "database": "FalkorDB", "dataset": DATA["version"], "synthetic": True, "persistence": "managed" if os.environ.get('FALKORDB_URL') else "ephemeral_demo"}
 
 
 @app.get("/api/workspace")
@@ -169,7 +191,8 @@ if (DIST / "assets").exists():
 
 @app.get("/favicon.svg")
 def favicon():
-    return FileResponse(ROOT / "web/public/favicon.svg")
+    path = DIST / "favicon.svg"
+    return FileResponse(path if path.exists() else ROOT / "web/public/favicon.svg")
 
 
 @app.get("/{path:path}")

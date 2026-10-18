@@ -21,19 +21,24 @@ class ActionError(Exception):
         self.message, self.status = message, status
 
 
-def sign(payload: dict) -> str:
+def sign(payload: dict, purpose: str) -> str:
     data = base64.urlsafe_b64encode(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).decode().rstrip("=")
-    digest = hmac.new(SECRET, data.encode(), hashlib.sha256).hexdigest()
+    digest = hmac.new(SECRET, f"{purpose}:{data}".encode(), hashlib.sha256).hexdigest()
     return f"{data}.{digest}"
 
 
-def verify(token: str) -> dict:
+def verify(token: str, purpose: str) -> dict:
     try:
+        if not isinstance(token, str) or len(token) > 6000:
+            raise ValueError()
         data, digest = token.rsplit(".", 1)
-        expected = hmac.new(SECRET, data.encode(), hashlib.sha256).hexdigest()
+        expected = hmac.new(SECRET, f"{purpose}:{data}".encode(), hashlib.sha256).hexdigest()
         if not hmac.compare_digest(expected, digest):
             raise ValueError()
-        return json.loads(base64.urlsafe_b64decode(data + "=" * (-len(data) % 4)))
+        payload = json.loads(base64.urlsafe_b64decode(data + "=" * (-len(data) % 4)))
+        if not isinstance(payload, dict):
+            raise ValueError()
+        return payload
     except (ValueError, TypeError, json.JSONDecodeError):
         raise ActionError("The review token is invalid. Generate a new plan.", 403)
 
@@ -44,13 +49,13 @@ def prepare(graph, workspace: str, lot_id: str, now: int | None = None):
     if scope["outcome"] != "answered_with_paths" or not eligible:
         raise ActionError("No complete, confirmed, unheld shipments are available for this plan.")
     payload = {"workspace": workspace, "lot_id": lot_id, "shipments": sorted(s["id"] for s in eligible), "revision": scope["revision"], "epoch": epoch(graph), "expires": (now if now is not None else int(time.time())) + 600, "id": secrets.token_hex(12)}
-    return {"token": sign(payload), "id": payload["id"], "expires_at": payload["expires"], "revision": payload["revision"], "lot_id": lot_id, "shipments": eligible, "units": sum(s["units"] for s in eligible), "excluded": scope["uncertain"], "sandbox": True}
+    return {"token": sign(payload, "review"), "id": payload["id"], "expires_at": payload["expires"], "revision": payload["revision"], "lot_id": lot_id, "shipments": eligible, "units": sum(s["units"] for s in eligible), "excluded": scope["uncertain"], "sandbox": True}
 
 
 def commit(graph, workspace: str, token: str, approved: bool, now: int | None = None):
     if approved is not True:
         raise ActionError("Review and approve the exact sandbox shipment list first.", 400)
-    payload = verify(token)
+    payload = verify(token, "review")
     if payload.get("workspace") != workspace:
         raise ActionError("This plan belongs to a different workspace.", 403)
     with LOCK:

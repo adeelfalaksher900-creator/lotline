@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import atexit
+from collections import OrderedDict
 import json
 import os
 from pathlib import Path
@@ -21,7 +22,9 @@ DATA = json.loads((ROOT / "data/scenario.json").read_text())
 LOCK = threading.RLock()
 _db = None
 _process = None
-_initialized: set[str] = set()
+_initialized: OrderedDict[str, float] = OrderedDict()
+MAX_EMBEDDED_WORKSPACES = 64
+WORKSPACE_IDLE_SECONDS = 3600
 
 
 def connection():
@@ -96,12 +99,28 @@ def graph_for(workspace: str):
         raise ValueError("Invalid workspace")
     name = f"lotline_{workspace}"
     with LOCK:
-        graph = connection().select_graph(name)
+        db = connection()
+        embedded = not os.environ.get("FALKORDB_URL")
+        now = time.monotonic()
+        if embedded:
+            while _initialized and next(iter(_initialized.values())) <= now - WORKSPACE_IDLE_SECONDS:
+                _initialized.popitem(last=False)
+            if name not in _initialized and len(_initialized) >= MAX_EMBEDDED_WORKSPACES:
+                raise RuntimeError("This demo has reached its active-workspace capacity. Retry later.")
+        graph = db.select_graph(name)
+        if name in _initialized and not db.connection.exists(name):
+            _initialized.pop(name)
         if name not in _initialized:
-            existing = graph.ro_query("MATCH (m:Meta {id: 'dataset'}) RETURN m.version").result_set if connection().connection.exists(name) else []
+            existing = graph.ro_query("MATCH (m:Meta {id: 'dataset'}) RETURN m.version").result_set if db.connection.exists(name) else []
             if not existing:
                 seed(graph)
-            _initialized.add(name)
+        _initialized[name] = now
+        _initialized.move_to_end(name)
+        if embedded:
+            db.connection.expire(name, WORKSPACE_IDLE_SECONDS)
+        elif len(_initialized) > MAX_EMBEDDED_WORKSPACES:
+            # Only evict the lookup cache; managed graph data is never expired.
+            _initialized.popitem(last=False)
         return graph
 
 

@@ -16,7 +16,7 @@ The difference is the useful part of the demo. A graph is valuable when a relati
 
 ## Model the evidence with the connection
 
-Lot nodes connect through `INPUT_TO` relationships. Dispatch relationships lead to shipments; shipments connect to destinations. Source records document the transformations. The material edges carry both a source-record ID and an evidence status.
+Lot nodes connect through `INPUT_TO` relationships. Dispatch relationships lead to shipments; shipments connect to destinations. Source records document the transformations. The material edges carry both a source-record ID and an evidence status. A shipment also needs confirmed dispatch and delivery edges before it can enter a hold.
 
 That last choice matters. An unsigned shift note suggests another connection, reaching 300 units. Lotline shows them as requiring evidence and excludes them from the confirmed hold. A different source lot has 450 units with no path from the flagged source in the fixture. Neither a missing path nor a missing signature establishes that stock is safe.
 
@@ -43,7 +43,7 @@ The backend deduplicates shipments reached by several paths. Fixed query variant
 
 ## Give the agent a bounded job
 
-Workers AI selects from four validated tools: investigate, compare depth, explain a shipment path and read history. It returns a tool name and a lot ID. It does not generate Cypher or authorize mutations. The frontend can also invoke a fixed depth directly; the trace labels that mode honestly.
+Workers AI selects from four validated tools: investigate, compare depth, explain a shipment path and read history. It returns a tool name and a lot ID; the server independently binds the requested lot so a model cannot substitute another case. It does not generate Cypher or authorize mutations. The frontend can also invoke a fixed depth directly; the trace labels that mode honestly.
 
 The Python tools query a real FalkorDB engine. The JSON scenario is only ingestion input. If the database cannot be reached, the API reports unavailability instead of substituting a JSON lookup and pretending graph execution succeeded. Unknown lot IDs return an unknown result without inferred lineage.
 
@@ -61,11 +61,11 @@ No external warehouse, supplier or customer system is contacted. This is a worki
 
 Deploying a native graph engine inside a Python serverless runtime required more care than serving a conventional web API. The embedded package needed newer native libraries than the hosting image provided. Lotline uses checksum-verified, version-pinned libraries only for its graph child process. It never replaces host libraries. The repository documents this adapter and the simpler local or managed-database alternatives.
 
-The embedded hosted graph is temporary and may reset on a cold start. That limit is explicit. A production extension would need persistent database hosting, authenticated roles, operational review and real integration validation.
+The embedded hosted graph is temporary and may reset on a cold start or after an hour without activity. That limit is explicit. A production extension would need persistent database hosting, authenticated roles, operational review and real integration validation.
 
 ## Evidence before confidence
 
-Five integration tests execute actual FalkorDB and cover transformation scope, ambiguity, unknown and injection inputs, exact holds, replay and request boundaries. Additional checks exercise the MCP protocol, deployed LLM planner and hosted action flow. Automated desktop/mobile accessibility checks found contrast and control-label issues, which were corrected before recording.
+Thirteen integration and boundary tests execute actual FalkorDB and cover transformation scope, ambiguity, unknown and injection inputs, exact holds, replay and request boundaries. Additional checks exercise the MCP protocol, deployed LLM planner and hosted action flow. Automated desktop/mobile accessibility checks found contrast and control-label issues, which were corrected before recording.
 
 The remaining gap is equally important: no independent operator study or production-scale benchmark has been performed. The repository records both completed checks and limits.
 
