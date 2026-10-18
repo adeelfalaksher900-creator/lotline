@@ -24,7 +24,7 @@ https://github.com/adeelfalaksher900-creator/lotline
 Pending the final rendered video's public or unlisted YouTube URL. Do not insert a placeholder into the required form field.
 
 ## Live deployment
-https://lotline-eight-indol.vercel.app
+https://lotline-27e8ldgam-adeelfalaksher900-creators-projects.vercel.app
 
 ## How did you use FalkorDB in your project?
 FalkorDB is the connected context and action store. The graph models lots, transformations, shipments, destinations, suppliers, source records and reviewed decisions. Parameterised Cypher follows INPUT_TO paths up to a fixed six-hop limit, reaches DISPATCHED shipments, and returns each path, source-record IDs and evidence status alongside the result. The backend deduplicates shipments and requires confirmed transformation, dispatch and delivery evidence. Unsigned or truncated scope cannot enter a hold plan. The requested lot is bound independently of the model.
@@ -52,7 +52,7 @@ A working demonstration of Lotline by Adeel Falak Sher, solo participant in Grap
 
 Track: Agents That Act on Connected Data.
 
-Live app: https://lotline-eight-indol.vercel.app
+Live app: https://lotline-27e8ldgam-adeelfalaksher900-creators-projects.vercel.app
 Source and setup: https://github.com/adeelfalaksher900-creator/lotline
 Build write-up: https://github.com/adeelfalaksher900-creator/lotline/blob/main/docs/BLOG.md
 

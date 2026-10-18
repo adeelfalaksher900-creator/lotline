@@ -4,7 +4,7 @@ A supplier flags an ingredient lot. The finished product has a different lot num
 
 Lotline is a working answer to that problem, built for the **Agents That Act on Connected Data** track of Graph Hacks. Its dataset is fictional. The goal is to demonstrate an investigation and a reviewed action whose outcome depends on a graph.
 
-[Try the workspace](https://lotline-eight-indol.vercel.app) · [Read the code and setup](../README.md) · [Inspect the Cypher tools](../queries)
+[Try the workspace](https://lotline-27e8ldgam-adeelfalaksher900-creators-projects.vercel.app) · [Read the code and setup](../README.md) · [Inspect the Cypher tools](../queries)
 
 ## The trap in a shallow lookup
 

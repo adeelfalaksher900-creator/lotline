@@ -6,7 +6,7 @@ A working recall investigation agent for **Graph Hacks: Context for AI Agents**,
 
 **Track: Agents That Act on Connected Data**
 
-[Open the workspace](https://lotline-eight-indol.vercel.app) · [Watch the 1080p demo](demo/Lotline_Demo_1080p.mp4) · [Graph model](docs/ARCHITECTURE.md) · [Cypher tools](queries) · [Research](docs/RESEARCH.md) · [Technical walkthrough](docs/BUILDER_GUIDE.md) · [Build write-up](docs/BLOG.md)
+[Open the workspace](https://lotline-27e8ldgam-adeelfalaksher900-creators-projects.vercel.app) · [Watch the 1080p demo](demo/Lotline_Demo_1080p.mp4) · [Graph model](docs/ARCHITECTURE.md) · [Cypher tools](queries) · [Research](docs/RESEARCH.md) · [Technical walkthrough](docs/BUILDER_GUIDE.md) · [Build write-up](docs/BLOG.md)
 
 ![The working Lotline workspace, with graph lineage and an evidence-backed shipment scope](assets/02-full-chain.png)
 

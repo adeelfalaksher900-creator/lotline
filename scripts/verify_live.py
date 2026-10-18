@@ -1,7 +1,7 @@
 """Exercise only the new synthetic Lotline deployment. No real data involved."""
 import json,urllib.request,urllib.error,http.cookiejar
 from pathlib import Path
-base='https://lotline-eight-indol.vercel.app'
+base='https://lotline-27e8ldgam-adeelfalaksher900-creators-projects.vercel.app'
 jar=http.cookiejar.CookieJar();client=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 def call(path,body=None,csrf=None):
  headers={'User-Agent':'Lotline-Verification/1.0'}
