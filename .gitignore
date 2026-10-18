@@ -1,0 +1,14 @@
+node_modules/
+.venv/
+__pycache__/
+.pytest_cache/
+.env
+.env.*
+!.env.example
+.vercel/
+*.rdb
+*.sock
+*.log
+media/output/
+media/node_modules/
+media/.hyperframes/

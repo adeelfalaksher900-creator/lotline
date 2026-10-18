@@ -1,0 +1,11 @@
+export type GraphNode={id:string;kind:string;name:string;stage?:number;family?:string;note?:string;body?:string;at?:string;units?:number;status?:string};
+export type GraphEdge={source:string;target:string;kind:string;evidence:string;source_id:string;event_id?:string};
+export type Graph={nodes:GraphNode[];edges:GraphEdge[]};
+export type Scenario={id:string;lot_id:string;title:string;product:string;severity:string;source_id:string;note:string;question:string};
+export type Shipment=GraphNode&{units:number;status:string;lot_id:string;lot_name:string;path:string[];source_ids:string[];hops:number;site:GraphNode;confidence:string};
+export type Totals={units:number;shipments:number;sites:number;review_units:number;lots:number};
+export type Trace={tool:string;arguments:Record<string,unknown>;duration_ms:number;rows:number;query:string};
+export type Decision={id:string;lot_id:string;at:string;shipment_ids:string[];units:number;action:string;note:string};
+export type Result={outcome:string;lot_id:string;lot?:GraphNode;depth:number;revision:number;confirmed:Shipment[];uncertain:Shipment[];documents:GraphNode[];totals:Totals;summary:string;trace:Trace[];truncated?:boolean;planner:{tool:string;mode:string;model:string|null;duration_ms:number;reason:string};graph:Graph;comparison?:{one_hop:Totals;full_chain:Totals;extra_units:number;one_hop_trace:Trace[]};history?:Decision[]};
+export type Workspace={scenarios:Scenario[];graph:Graph;history:Decision[];csrf:string;synthetic:boolean;dataset:string;database:string;persistence:string};
+export type Plan={token:string;id:string;expires_at:number;revision:number;lot_id:string;shipments:Shipment[];units:number;excluded:Shipment[];sandbox:boolean};

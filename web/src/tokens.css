@@ -1,0 +1,14 @@
+:root {
+  --color-primary: #254E70;
+  --color-background: #F3F6F8;
+  --color-surface: #FFFFFF;
+  --color-ink: #20364B;
+  --color-muted: #627589;
+  --color-line: #D9E2E9;
+  --color-danger: #B44748;
+  --color-warning: #886121;
+  --color-success: #2D735D;
+  --color-accent: #D7AE69;
+  --font-sans: Manrope, Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+}

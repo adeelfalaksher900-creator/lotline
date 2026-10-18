@@ -1,0 +1,727 @@
+{
+  "version": "2026-10-18.1",
+  "synthetic": true,
+  "nodes": [
+    {
+      "id": "DOC-01",
+      "kind": "Document",
+      "name": "Supplier alert \u00b7 sesame lot SM-2407",
+      "body": "FICTIONAL TRAINING RECORD. Supplier North Mill flags sesame lot LOT-SM-2407 after a packaging-label mismatch. This alert identifies the source lot only. It does not determine affected finished stock or declare any other lot safe.",
+      "at": "2026-10-18T08:00:00Z",
+      "synthetic": true
+    },
+    {
+      "id": "DOC-02",
+      "kind": "Document",
+      "name": "Mixing record \u00b7 MIX-091",
+      "body": "FICTIONAL TRAINING RECORD. Event EVT-01 consumed LOT-SM-2407 into MIX-091. Event EVT-02 consumed MIX-091 into LOT-CR-118. Both records are signed by the synthetic quality team.",
+      "at": "2026-10-18T08:00:00Z",
+      "synthetic": true
+    },
+    {
+      "id": "DOC-03",
+      "kind": "Document",
+      "name": "Repack record \u00b7 LOT-RP-118",
+      "body": "FICTIONAL TRAINING RECORD. EVT-03 repacked LOT-CR-118 into LOT-RP-118. A change of pack size retained the original batch lineage. Both retail and mini packs share the same upstream sesame lot.",
+      "at": "2026-10-18T08:00:00Z",
+      "synthetic": true
+    },
+    {
+      "id": "DOC-04",
+      "kind": "Document",
+      "name": "Rework record \u00b7 LOT-RW-121",
+      "body": "FICTIONAL TRAINING RECORD. EVT-04 used LOT-CR-118 as rework in LOT-RW-121. A new batch identifier does not erase the input relationship. Additional MIX-094 also fed LOT-RW-121.",
+      "at": "2026-10-18T08:00:00Z",
+      "synthetic": true
+    },
+    {
+      "id": "DOC-05",
+      "kind": "Document",
+      "name": "Mixing record \u00b7 MIX-092",
+      "body": "FICTIONAL TRAINING RECORD. EVT-05 consumed LOT-SM-2407 into MIX-092. EVT-06 produced LOT-SN-120 from MIX-092.",
+      "at": "2026-10-18T08:00:00Z",
+      "synthetic": true
+    },
+    {
+      "id": "DOC-06",
+      "kind": "Document",
+      "name": "Dispatch ledger \u00b7 sesame products",
+      "body": "FICTIONAL TRAINING RECORD. SH-101: 240 units of LOT-CR-118 to Alder Market. SH-102: 180 units to Harbor Grocer. SH-103: 360 mini packs LOT-RP-118 to Pine Stores. SH-104: 120 mini packs to Alder Market. SH-105: 200 LOT-SN-120 units at East Distribution. SH-106: 80 LOT-RW-121 units to Harbor Grocer.",
+      "at": "2026-10-18T08:00:00Z",
+      "synthetic": true
+    },
+    {
+      "id": "DOC-07",
+      "kind": "Document",
+      "name": "Unverified shift note \u00b7 LOT-CR-119",
+      "body": "FICTIONAL TRAINING RECORD. An unsigned shift note suggests LOT-CR-119 might contain LOT-SM-2407. The transformation manifest is missing. This relationship is UNVERIFIED and must not be promoted to confirmed exposure. SH-107 contains 300 units at Pine Stores. Obtain the missing signed batch record.",
+      "at": "2026-10-18T08:00:00Z",
+      "synthetic": true
+    },
+    {
+      "id": "DOC-08",
+      "kind": "Document",
+      "name": "Separate source record \u00b7 LOT-SM-2408",
+      "body": "FICTIONAL TRAINING RECORD. LOT-SM-2408 fed MIX-093, which produced LOT-CR-122. SH-108 contains 450 units at West Distribution. No path from LOT-SM-2407 to this stock is present in the supplied graph. Absence of that path is not a safety certificate.",
+      "at": "2026-10-18T08:00:00Z",
+      "synthetic": true
+    },
+    {
+      "id": "DOC-09",
+      "kind": "Document",
+      "name": "Supplier alert \u00b7 milk powder MK-311",
+      "body": "FICTIONAL TRAINING RECORD. Crescent Ingredients flags LOT-MK-311 for a label check. The lot fed MIX-095, then LOT-PR-211. SH-109 contains 150 units at Alder Market and SH-110 contains 90 units at Harbor Grocer.",
+      "at": "2026-10-18T08:00:00Z",
+      "synthetic": true
+    },
+    {
+      "id": "DOC-10",
+      "kind": "Document",
+      "name": "Packaging alert \u00b7 PK-022",
+      "body": "FICTIONAL TRAINING RECORD. Fold Paper flags LOT-PK-022 after an ink transfer report. It was used for LOT-PK-330. SH-111 contains 600 units at East Distribution. This scenario checks a packaging lineage rather than ingredient mixing.",
+      "at": "2026-10-18T08:00:00Z",
+      "synthetic": true
+    },
+    {
+      "id": "SITE-A",
+      "kind": "Site",
+      "name": "Alder Market",
+      "location": "North district"
+    },
+    {
+      "id": "SITE-B",
+      "kind": "Site",
+      "name": "Harbor Grocer",
+      "location": "Harbor district"
+    },
+    {
+      "id": "SITE-C",
+      "kind": "Site",
+      "name": "Pine Stores",
+      "location": "Central district"
+    },
+    {
+      "id": "SITE-D",
+      "kind": "Site",
+      "name": "East Distribution",
+      "location": "East district"
+    },
+    {
+      "id": "SITE-E",
+      "kind": "Site",
+      "name": "West Distribution",
+      "location": "West district"
+    },
+    {
+      "id": "SUP-A",
+      "kind": "Supplier",
+      "name": "North Mill"
+    },
+    {
+      "id": "SUP-B",
+      "kind": "Supplier",
+      "name": "Crescent Ingredients"
+    },
+    {
+      "id": "SUP-C",
+      "kind": "Supplier",
+      "name": "Fold Paper"
+    },
+    {
+      "id": "LOT-SM-2407",
+      "kind": "Ingredient",
+      "name": "Sesame \u00b7 SM-2407",
+      "stage": 0,
+      "family": "sesame",
+      "note": "Flagged supplier lot"
+    },
+    {
+      "id": "MIX-091",
+      "kind": "Mix",
+      "name": "Sesame blend \u00b7 091",
+      "stage": 1,
+      "family": "sesame",
+      "note": "Signed mixing record"
+    },
+    {
+      "id": "LOT-CR-118",
+      "kind": "Batch",
+      "name": "Sesame crackers \u00b7 118",
+      "stage": 2,
+      "family": "crackers",
+      "note": "Retail pack"
+    },
+    {
+      "id": "LOT-RP-118",
+      "kind": "Repack",
+      "name": "Mini crackers \u00b7 118",
+      "stage": 3,
+      "family": "crackers",
+      "note": "Repacked from batch 118"
+    },
+    {
+      "id": "LOT-RW-121",
+      "kind": "Rework",
+      "name": "Seed bites \u00b7 121",
+      "stage": 3,
+      "family": "crackers",
+      "note": "Includes reworked crackers"
+    },
+    {
+      "id": "MIX-092",
+      "kind": "Mix",
+      "name": "Seed blend \u00b7 092",
+      "stage": 1,
+      "family": "sesame",
+      "note": "Second mixing route"
+    },
+    {
+      "id": "LOT-SN-120",
+      "kind": "Batch",
+      "name": "Sesame snack \u00b7 120",
+      "stage": 2,
+      "family": "snacks",
+      "note": "Warehouse stock"
+    },
+    {
+      "id": "LOT-CR-119",
+      "kind": "Batch",
+      "name": "Sesame crackers \u00b7 119",
+      "stage": 1,
+      "family": "crackers",
+      "note": "Missing signed manifest"
+    },
+    {
+      "id": "LOT-SM-2408",
+      "kind": "Ingredient",
+      "name": "Sesame \u00b7 SM-2408",
+      "stage": 0,
+      "family": "sesame",
+      "note": "Separate supplier lot"
+    },
+    {
+      "id": "MIX-093",
+      "kind": "Mix",
+      "name": "Sesame blend \u00b7 093",
+      "stage": 1,
+      "family": "sesame",
+      "note": "Separate production run"
+    },
+    {
+      "id": "LOT-CR-122",
+      "kind": "Batch",
+      "name": "Sesame crackers \u00b7 122",
+      "stage": 2,
+      "family": "crackers",
+      "note": "No link to flagged lot in graph"
+    },
+    {
+      "id": "MIX-094",
+      "kind": "Mix",
+      "name": "Oat blend \u00b7 094",
+      "stage": 1,
+      "family": "oats",
+      "note": "Second input to rework batch"
+    },
+    {
+      "id": "LOT-MK-311",
+      "kind": "Ingredient",
+      "name": "Milk powder \u00b7 MK-311",
+      "stage": 0,
+      "family": "milk",
+      "note": "Label check"
+    },
+    {
+      "id": "MIX-095",
+      "kind": "Mix",
+      "name": "Protein blend \u00b7 095",
+      "stage": 1,
+      "family": "milk",
+      "note": "Signed mixing record"
+    },
+    {
+      "id": "LOT-PR-211",
+      "kind": "Batch",
+      "name": "Protein bites \u00b7 211",
+      "stage": 2,
+      "family": "protein",
+      "note": "Retail pack"
+    },
+    {
+      "id": "LOT-PK-022",
+      "kind": "Packaging",
+      "name": "Carton stock \u00b7 PK-022",
+      "stage": 0,
+      "family": "paper",
+      "note": "Flagged packaging lot"
+    },
+    {
+      "id": "LOT-PK-330",
+      "kind": "Batch",
+      "name": "Cartoned snack \u00b7 330",
+      "stage": 1,
+      "family": "snacks",
+      "note": "Packaging route"
+    },
+    {
+      "id": "SH-101",
+      "kind": "Shipment",
+      "name": "SH-101",
+      "units": 240,
+      "status": "delivered",
+      "stage": 4,
+      "at": "2026-10-17T14:00:00Z"
+    },
+    {
+      "id": "SH-102",
+      "kind": "Shipment",
+      "name": "SH-102",
+      "units": 180,
+      "status": "delivered",
+      "stage": 4,
+      "at": "2026-10-17T14:00:00Z"
+    },
+    {
+      "id": "SH-103",
+      "kind": "Shipment",
+      "name": "SH-103",
+      "units": 360,
+      "status": "delivered",
+      "stage": 4,
+      "at": "2026-10-17T14:00:00Z"
+    },
+    {
+      "id": "SH-104",
+      "kind": "Shipment",
+      "name": "SH-104",
+      "units": 120,
+      "status": "delivered",
+      "stage": 4,
+      "at": "2026-10-17T14:00:00Z"
+    },
+    {
+      "id": "SH-105",
+      "kind": "Shipment",
+      "name": "SH-105",
+      "units": 200,
+      "status": "warehouse",
+      "stage": 4,
+      "at": "2026-10-17T14:00:00Z"
+    },
+    {
+      "id": "SH-106",
+      "kind": "Shipment",
+      "name": "SH-106",
+      "units": 80,
+      "status": "delivered",
+      "stage": 4,
+      "at": "2026-10-17T14:00:00Z"
+    },
+    {
+      "id": "SH-107",
+      "kind": "Shipment",
+      "name": "SH-107",
+      "units": 300,
+      "status": "delivered",
+      "stage": 4,
+      "at": "2026-10-17T14:00:00Z"
+    },
+    {
+      "id": "SH-108",
+      "kind": "Shipment",
+      "name": "SH-108",
+      "units": 450,
+      "status": "warehouse",
+      "stage": 4,
+      "at": "2026-10-17T14:00:00Z"
+    },
+    {
+      "id": "SH-109",
+      "kind": "Shipment",
+      "name": "SH-109",
+      "units": 150,
+      "status": "delivered",
+      "stage": 4,
+      "at": "2026-10-17T14:00:00Z"
+    },
+    {
+      "id": "SH-110",
+      "kind": "Shipment",
+      "name": "SH-110",
+      "units": 90,
+      "status": "delivered",
+      "stage": 4,
+      "at": "2026-10-17T14:00:00Z"
+    },
+    {
+      "id": "SH-111",
+      "kind": "Shipment",
+      "name": "SH-111",
+      "units": 600,
+      "status": "warehouse",
+      "stage": 4,
+      "at": "2026-10-17T14:00:00Z"
+    }
+  ],
+  "edges": [
+    {
+      "source": "SUP-A",
+      "target": "LOT-SM-2407",
+      "kind": "SUPPLIED",
+      "evidence": "confirmed",
+      "source_id": "DOC-01"
+    },
+    {
+      "source": "SUP-A",
+      "target": "LOT-SM-2408",
+      "kind": "SUPPLIED",
+      "evidence": "confirmed",
+      "source_id": "DOC-08"
+    },
+    {
+      "source": "SUP-B",
+      "target": "LOT-MK-311",
+      "kind": "SUPPLIED",
+      "evidence": "confirmed",
+      "source_id": "DOC-09"
+    },
+    {
+      "source": "SUP-C",
+      "target": "LOT-PK-022",
+      "kind": "SUPPLIED",
+      "evidence": "confirmed",
+      "source_id": "DOC-10"
+    },
+    {
+      "source": "LOT-SM-2407",
+      "target": "MIX-091",
+      "kind": "INPUT_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-02",
+      "event_id": "EVT-01",
+      "at": "2026-10-17T09:00:00Z"
+    },
+    {
+      "source": "MIX-091",
+      "target": "LOT-CR-118",
+      "kind": "INPUT_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-02",
+      "event_id": "EVT-02",
+      "at": "2026-10-17T09:00:00Z"
+    },
+    {
+      "source": "LOT-CR-118",
+      "target": "LOT-RP-118",
+      "kind": "INPUT_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-03",
+      "event_id": "EVT-03",
+      "at": "2026-10-17T09:00:00Z"
+    },
+    {
+      "source": "LOT-CR-118",
+      "target": "LOT-RW-121",
+      "kind": "INPUT_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-04",
+      "event_id": "EVT-04",
+      "at": "2026-10-17T09:00:00Z"
+    },
+    {
+      "source": "MIX-094",
+      "target": "LOT-RW-121",
+      "kind": "INPUT_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-04",
+      "event_id": "EVT-05",
+      "at": "2026-10-17T09:00:00Z"
+    },
+    {
+      "source": "LOT-SM-2407",
+      "target": "MIX-092",
+      "kind": "INPUT_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-05",
+      "event_id": "EVT-06",
+      "at": "2026-10-17T09:00:00Z"
+    },
+    {
+      "source": "MIX-092",
+      "target": "LOT-SN-120",
+      "kind": "INPUT_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-05",
+      "event_id": "EVT-07",
+      "at": "2026-10-17T09:00:00Z"
+    },
+    {
+      "source": "LOT-SM-2408",
+      "target": "MIX-093",
+      "kind": "INPUT_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-08",
+      "event_id": "EVT-08",
+      "at": "2026-10-17T09:00:00Z"
+    },
+    {
+      "source": "MIX-093",
+      "target": "LOT-CR-122",
+      "kind": "INPUT_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-08",
+      "event_id": "EVT-09",
+      "at": "2026-10-17T09:00:00Z"
+    },
+    {
+      "source": "LOT-MK-311",
+      "target": "MIX-095",
+      "kind": "INPUT_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-09",
+      "event_id": "EVT-10",
+      "at": "2026-10-17T09:00:00Z"
+    },
+    {
+      "source": "MIX-095",
+      "target": "LOT-PR-211",
+      "kind": "INPUT_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-09",
+      "event_id": "EVT-11",
+      "at": "2026-10-17T09:00:00Z"
+    },
+    {
+      "source": "LOT-PK-022",
+      "target": "LOT-PK-330",
+      "kind": "INPUT_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-10",
+      "event_id": "EVT-12",
+      "at": "2026-10-17T09:00:00Z"
+    },
+    {
+      "source": "LOT-SM-2407",
+      "target": "LOT-CR-119",
+      "kind": "INPUT_TO",
+      "evidence": "unverified",
+      "source_id": "DOC-07",
+      "event_id": "EVT-U1",
+      "at": "2026-10-17T10:00:00Z"
+    },
+    {
+      "source": "LOT-CR-118",
+      "target": "SH-101",
+      "kind": "DISPATCHED",
+      "evidence": "confirmed",
+      "source_id": "DOC-06"
+    },
+    {
+      "source": "SH-101",
+      "target": "SITE-A",
+      "kind": "DELIVERED_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-06"
+    },
+    {
+      "source": "LOT-CR-118",
+      "target": "SH-102",
+      "kind": "DISPATCHED",
+      "evidence": "confirmed",
+      "source_id": "DOC-06"
+    },
+    {
+      "source": "SH-102",
+      "target": "SITE-B",
+      "kind": "DELIVERED_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-06"
+    },
+    {
+      "source": "LOT-RP-118",
+      "target": "SH-103",
+      "kind": "DISPATCHED",
+      "evidence": "confirmed",
+      "source_id": "DOC-06"
+    },
+    {
+      "source": "SH-103",
+      "target": "SITE-C",
+      "kind": "DELIVERED_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-06"
+    },
+    {
+      "source": "LOT-RP-118",
+      "target": "SH-104",
+      "kind": "DISPATCHED",
+      "evidence": "confirmed",
+      "source_id": "DOC-06"
+    },
+    {
+      "source": "SH-104",
+      "target": "SITE-A",
+      "kind": "DELIVERED_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-06"
+    },
+    {
+      "source": "LOT-SN-120",
+      "target": "SH-105",
+      "kind": "DISPATCHED",
+      "evidence": "confirmed",
+      "source_id": "DOC-06"
+    },
+    {
+      "source": "SH-105",
+      "target": "SITE-D",
+      "kind": "DELIVERED_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-06"
+    },
+    {
+      "source": "LOT-RW-121",
+      "target": "SH-106",
+      "kind": "DISPATCHED",
+      "evidence": "confirmed",
+      "source_id": "DOC-06"
+    },
+    {
+      "source": "SH-106",
+      "target": "SITE-B",
+      "kind": "DELIVERED_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-06"
+    },
+    {
+      "source": "LOT-CR-119",
+      "target": "SH-107",
+      "kind": "DISPATCHED",
+      "evidence": "confirmed",
+      "source_id": "DOC-07"
+    },
+    {
+      "source": "SH-107",
+      "target": "SITE-C",
+      "kind": "DELIVERED_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-07"
+    },
+    {
+      "source": "LOT-CR-122",
+      "target": "SH-108",
+      "kind": "DISPATCHED",
+      "evidence": "confirmed",
+      "source_id": "DOC-08"
+    },
+    {
+      "source": "SH-108",
+      "target": "SITE-E",
+      "kind": "DELIVERED_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-08"
+    },
+    {
+      "source": "LOT-PR-211",
+      "target": "SH-109",
+      "kind": "DISPATCHED",
+      "evidence": "confirmed",
+      "source_id": "DOC-09"
+    },
+    {
+      "source": "SH-109",
+      "target": "SITE-A",
+      "kind": "DELIVERED_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-09"
+    },
+    {
+      "source": "LOT-PR-211",
+      "target": "SH-110",
+      "kind": "DISPATCHED",
+      "evidence": "confirmed",
+      "source_id": "DOC-09"
+    },
+    {
+      "source": "SH-110",
+      "target": "SITE-B",
+      "kind": "DELIVERED_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-09"
+    },
+    {
+      "source": "LOT-PK-330",
+      "target": "SH-111",
+      "kind": "DISPATCHED",
+      "evidence": "confirmed",
+      "source_id": "DOC-10"
+    },
+    {
+      "source": "SH-111",
+      "target": "SITE-D",
+      "kind": "DELIVERED_TO",
+      "evidence": "confirmed",
+      "source_id": "DOC-10"
+    },
+    {
+      "source": "DOC-01",
+      "target": "LOT-SM-2407",
+      "kind": "ABOUT",
+      "evidence": "confirmed",
+      "source_id": "DOC-01"
+    },
+    {
+      "source": "DOC-07",
+      "target": "LOT-CR-119",
+      "kind": "ABOUT",
+      "evidence": "confirmed",
+      "source_id": "DOC-07"
+    },
+    {
+      "source": "DOC-09",
+      "target": "LOT-MK-311",
+      "kind": "ABOUT",
+      "evidence": "confirmed",
+      "source_id": "DOC-09"
+    },
+    {
+      "source": "DOC-10",
+      "target": "LOT-PK-022",
+      "kind": "ABOUT",
+      "evidence": "confirmed",
+      "source_id": "DOC-10"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "sesame",
+      "lot_id": "LOT-SM-2407",
+      "title": "Sesame label mismatch",
+      "product": "Sesame crackers & seed bites",
+      "severity": "Priority",
+      "source_id": "DOC-01",
+      "note": "Mixing, repacking and a hidden rework route.",
+      "question": "Trace LOT-SM-2407 through every transformation. Which shipments need a hold, and where is the evidence incomplete?"
+    },
+    {
+      "id": "milk",
+      "lot_id": "LOT-MK-311",
+      "title": "Milk powder label check",
+      "product": "Protein bites",
+      "severity": "Review",
+      "source_id": "DOC-09",
+      "note": "One source, two retail destinations.",
+      "question": "Investigate LOT-MK-311 and prepare a containment plan."
+    },
+    {
+      "id": "packaging",
+      "lot_id": "LOT-PK-022",
+      "title": "Carton ink transfer",
+      "product": "Cartoned snacks",
+      "severity": "Review",
+      "source_id": "DOC-10",
+      "note": "Trace the packaging, not the ingredient.",
+      "question": "Which shipments used packaging LOT-PK-022?"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+fastapi==0.143.3
+uvicorn==0.54.0
+falkordb==1.8.0
+falkordblite==0.10.0
+httpx[socks]==0.28.1
