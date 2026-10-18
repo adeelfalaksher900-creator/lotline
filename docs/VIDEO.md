@@ -12,7 +12,7 @@ The Hyperframes source uses local Manrope and IBM Plex Mono fonts, a paused GSAP
 
 ## Reproduce
 
-Use the application's documented local setup. The demo recording script drives actual UI interactions; it does not intercept or mock API responses. The Hyperframes wrapper expects its actual tour MP4 and the existing narrated audio alongside the composition. The generated media is distributed separately from app source.
+Use the application's documented local setup. The demo recording script drives actual UI interactions; it does not intercept or mock API responses. The Hyperframes wrapper expects its actual tour MP4 and the existing narrated audio alongside the composition. The editable production package is delivered separately as Lotline_Video_Source.zip, including both actual footage variants, narration, fonts and composition source. The final MP4 is in demo/ in the public repository.
 
 ```bash
 cd media/demo
