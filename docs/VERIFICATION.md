@@ -39,3 +39,6 @@ The final UI regression pass covered six states with zero axe violations: start,
 Dependency review upgraded Vite 7.1.12 to 7.3.7 after npm reported dev-server advisories. The patched lockfile reports zero known npm vulnerabilities. The Python verification environment initially flagged its old pip installer; upgrading that tooling to pip 26.2.1 left zero known findings in the installed-environment audit. These are advisory database checks, not proof that every dependency or the host is vulnerability-free. See npm-dependency-audit.json and python-dependency-audit.json.
 
 The final deployed frontend was also opened and exercised in the connected Chrome browser at the immutable deployment URL. Its full-chain result and updated evidence copy were confirmed visually. That tested build URL is used in the README and submission draft; the browser had retained older asset references at the original alias.
+
+## Submission confirmation
+WeMakeDevs displayed Submitted for Lotline — Evidence before action, Solo entry, filed by Adeel Falak Sher (@adeel) at Oct 18, 2026, 8:25 PM Pakistan time. All ten form fields were complete, including the final YouTube demo, repository, live deployment, track and blog. The public YouTube oEmbed endpoint returned HTTP 200 with the Lotline demo title and Adeel Falak Sher as author.

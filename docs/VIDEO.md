@@ -1,5 +1,9 @@
 # Demonstration production
 
+Published demo: https://youtu.be/fKDiY1F65zc
+
+Included in the confirmed WeMakeDevs submission on 18 October 2026.
+
 The final video is a 133-second, 1920×1080, 30fps Hyperframes composition built around actual browser interactions with the working application. The app recording uses a 1920×924 viewport with reserved brand and caption rails in the final frame.
 
 It uses the real React frontend, FastAPI API, FalkorDBLite engine and Workers AI planner. The recorded flow covers one-hop and full-chain scope, repack/rework, shipment paths and source records, unverified stock, the query trace, exact hold review, approval, the decision receipt and an unknown lot.

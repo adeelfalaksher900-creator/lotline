@@ -1,6 +1,8 @@
-# Lotline submission draft
+# Lotline submission record
 
-**Status: product verification complete; awaiting the public/unlisted YouTube URL. Adeel has authorised submission once the verified video and all required fields are complete.** The inspected WeMakeDevs form has no separate Save draft control. Populated fields remain an unsent browser form, not a confirmed server-saved submission.
+Status: submitted to WeMakeDevs on 18 October 2026 at 8:25 PM Pakistan time. The website confirmed Submitted, Solo entry, Adeel Falak Sher (@adeel). All ten fields were answered.
+
+Submission page: https://www.wemakedevs.org/hackathons/falkordb/submit
 
 ## Project title
 Lotline — Evidence before action
@@ -21,7 +23,7 @@ Agents That Act on Connected Data
 https://github.com/adeelfalaksher900-creator/lotline
 
 ## Demo video
-Pending the final rendered video's public or unlisted YouTube URL. Do not insert a placeholder into the required form field.
+https://youtu.be/fKDiY1F65zc
 
 ## Live deployment
 https://lotline-27e8ldgam-adeelfalaksher900-creators-projects.vercel.app
