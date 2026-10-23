@@ -1,6 +1,11 @@
 # Lotline
 
-Trace the lot. Review the evidence. Act on the confirmed scope.
+### Trace the lot. Review the evidence. Act on the confirmed scope.
+
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB)
+![MIT](https://img.shields.io/badge/License-MIT-0066cc)
 
 A working recall investigation agent for **Graph Hacks: Context for AI Agents**, built by **Adeel Falak Sher**, solo.
 
@@ -10,7 +15,9 @@ A working recall investigation agent for **Graph Hacks: Context for AI Agents**,
 
 ![The working Lotline workspace, with graph lineage and an evidence-backed shipment scope](assets/02-full-chain.png)
 
-## The problem
+[Purpose](#purpose) · [Architecture](#architecture) · [Local setup](#local-setup) · [Configuration](#configuration) · [Verification](#verification) · [Deployment](#design-and-deployment)
+
+## Purpose
 
 A supplier flags a source ingredient, but finished stock has different identifiers. Mixing, repacking and rework carry that ingredient through several transformations. An operations analyst needs the downstream shipment scope and its supporting records before deciding what to hold.
 
@@ -29,7 +36,7 @@ The 1,180 units include repacked and reworked stock. Shipments count once even w
 
 These are fixture facts, not customer outcomes, regulatory determinations or speed benchmarks. Every supplier, shipment, document and destination is fictional.
 
-## Why FalkorDB is central
+## Architecture
 
 ```mermaid
 flowchart TD
@@ -52,7 +59,7 @@ flowchart TD
 
 The graph starts with 46 domain nodes and 43 domain relationships: 17 lots, 11 shipments, 5 destinations, 3 suppliers and 10 source records. Decisions add graph state after approval.
 
-## Run locally
+## Local setup
 
 Verified setup: Ubuntu 24.04 with glibc 2.39, Python 3.12 and Node.js 24. Use a compatible Linux environment for the embedded native engine. The optional remote FalkorDB connection avoids running that engine in the application host. Windows users should use WSL2 with a compatible distribution.
 
@@ -88,6 +95,27 @@ The optional [Docker Compose file](docker-compose.yml) binds graph ports to loop
 Without a planner, the local intent router still invokes the same real graph tools and labels its mode in the trace. To use an LLM, deploy [workers/planner.js](workers/planner.js) with a Workers AI binding named `AI`, a server-only secret `PLANNER_KEY`, and a rate limiter named `RATE_LIMITER`. Set `LOTLINE_PLANNER_URL` and `LOTLINE_PLANNER_KEY` on the FastAPI server. Set a stable random `LOTLINE_SESSION_SECRET` for hosted deployments. See [.env.example](.env.example).
 
 The planner accepts a bounded question and selected lot, and returns only a validated tool name and lot ID. The server independently binds the lot explicitly requested in the question (or the selected case), so a model response cannot silently substitute another lot. It receives no real customer information. Cloudflare's applicable quotas or charges are separate from this project.
+
+## Configuration
+
+| Setting | Purpose |
+| --- | --- |
+| `FALKORDB_URL` | Optional persistent graph connection; use `rediss://` for remote TLS |
+| `LOTLINE_SESSION_SECRET` | Stable server-side signing secret for a hosted instance |
+| `LOTLINE_PLANNER_URL` | Optional deployed tool-selection endpoint |
+| `LOTLINE_PLANNER_KEY` | Server-only credential for that endpoint |
+| `LOTLINE_MCP_WORKSPACE` | Workspace used by the optional stdio MCP server |
+
+Keep secret values in the deployment environment. The checked-in [`.env.example`](.env.example) documents the main server settings; the application reads process environment variables.
+
+| Layer | Implementation |
+| --- | --- |
+| Workspace | React, TypeScript, Vite and Lucide icons |
+| API | Python and FastAPI |
+| Connected context | FalkorDB and parameterized Cypher tools |
+| Planner | Optional Cloudflare Workers AI endpoint or labeled local intent router |
+| Actions | Server-validated, signed plans followed by explicit operator approval |
+| Integration | Optional read-only MCP server |
 
 ## Essential Cypher
 
@@ -144,7 +172,7 @@ The graph integration tests cover repack/rework scope, duplicate counting, unkno
 
 Current verification evidence and open limits are recorded in [docs/VERIFICATION.md](docs/VERIFICATION.md). Read it for the tested deployment rather than assuming every environment is identical. The [final product review](docs/FINAL_REVIEW.md) records the corrected flows and current screenshots.
 
-## Design and hosting
+## Design and deployment
 
 React, TypeScript and Vite provide the workspace. FastAPI serves the static build and API. A focused material lineage, equivalent shipment table and source dialogs keep evidence next to the action. The interface self-hosts its fonts, including their OFL licences, and the development server binds to loopback by default. [DESIGN.md](DESIGN.md) owns tokens and [UX-CONTRACT.md](UX-CONTRACT.md) describes behavior.
 
@@ -163,3 +191,4 @@ OpenAI Codex assisted with research, implementation, test design, documentation 
 ## Licence
 
 Project source: [MIT](LICENSE). Dependencies retain their own licences. FalkorDB and its embedded/native runtime are third-party components. No private or restricted dataset is included.
+
